@@ -1,0 +1,1769 @@
+Microsoft (R) Macro Assembler Version 14.00.23506.0	    12/17/16 11:39:16
+
+final exa						     Page 1 - 1
+
+
+				TITLE final exam
+				;//Program Description:final exam
+				;//Author:Bhuwan Sapkota
+				;// Date: 12/14/16
+
+				INCLUDE Irvine32.inc
+			      C ; Include file for Irvine32.lib             (Irvine32.inc)
+			      C 
+			      C ;OPTION CASEMAP:NONE		; optional: make identifiers case-sensitive
+			      C 
+			      C INCLUDE SmallWin.inc		; MS-Windows prototypes, structures, and constants
+			      C .NOLIST
+			      C .LIST
+			      C 
+			      C INCLUDE VirtualKeys.inc
+			      C ; VirtualKeys.inc
+			      C .NOLIST
+			      C .LIST
+			      C 
+			      C 
+			      C .NOLIST
+			      C .LIST
+			      C 
+				BtoDW PROTO,:dword,:dword
+				PrintBoard PROTO, :dword, :dword
+				changeColor PROTO, :dword, :dword, :dword
+				xMove PROTO,:dword,:dword,:dword,:dword
+				oMove PROTO,:dword,:dword,:dword,:dword
+				cm_oMove PROTO,:dword,:dword
+				cm_xMove PROTO,:dword,:dword
+				reset2DefaultColor PROTO,:dword,:dword
+				checkwin PROTO,:dword,:dword
+ 00000000			.data
+ 00000000 57 65 6C 63 6F	initialpromt byte "Welcome to simple tic tac toe game",13,10
+	   6D 65 20 74 6F
+	   20 73 69 6D 70
+	   6C 65 20 74 69
+	   63 20 74 61 63
+	   20 74 6F 65 20
+	   67 61 6D 65 0D
+	   0A
+ 00000024  77 68 65 6E 20				 byte "when you make the move just enter the number of intented box",13,10
+	   79 6F 75 20 6D
+	   61 6B 65 20 74
+	   68 65 20 6D 6F
+	   76 65 20 6A 75
+	   73 74 20 65 6E
+	   74 65 72 20 74
+	   68 65 20 6E 75
+	   6D 62 65 72 20
+	   6F 66 20 69 6E
+	   74 65 6E 74 65
+	   64 20 62 6F 78
+	   0D 0A
+ 00000062  62 6F 78 20 6E				 byte "box numbers are assigned as follow",13,10
+	   75 6D 62 65 72
+	   73 20 61 72 65
+	   20 61 73 73 69
+	   67 6E 65 64 20
+	   61 73 20 66 6F
+	   6C 6C 6F 77 0D
+	   0A
+ 00000086  20 31 20 7C 20				 byte " 1 | 2 | 3 ",13,10
+	   32 20 7C 20 33
+	   20 0D 0A
+ 00000093  20 34 20 7C 20				byte " 4 | 5 | 6 ",13,10
+	   35 20 7C 20 36
+	   20 0D 0A
+ 000000A0  20 37 20 7C 20				byte " 7 | 8 | 9 ",13,10,0
+	   38 20 7C 20 39
+	   20 0D 0A 00
+ 000000AE 20 2D 20 7C 20	GameBoard  	byte " - | - | - ",13,10
+	   2D 20 7C 20 2D
+	   20 0D 0A
+ 000000BB  20 2D 20 7C 20				byte " - | - | - ",13,10
+	   2D 20 7C 20 2D
+	   20 0D 0A
+ 000000C8  20 2D 20 7C 20				byte " - | - | - ",13,10,0
+	   2D 20 7C 20 2D
+	   20 0D 0A 00
+ 000000D6  00000028 [		DWGameBoard dword ($-GameBoard) Dup(?)					;// will store strings in double word
+	    00000000
+	   ]
+ 00000176 01 05 09		indexArray	byte 1,5,9
+ 00000179 = 00000003		rowsize =($-indexArray)
+ 00000179  0E 12 16					byte 14,18,22
+ 0000017C  1B 1F 23					byte 27,31,35								;// store the location of game symbol in string
+ 0000017F 00000027		boardSlength dword (lengthof DWGameBoard-1)				;// stringlenth
+ 00000183 63 68 6F 6F 73	entrypromt	byte "choose from (1-9)",13,10,0							;// entry promt
+	   65 20 66 72 6F
+	   6D 20 28 31 2D
+	   39 29 0D 0A 00
+ 00000197 54 68 61 74 20	errorpromt	byte "That is not correct,Please choose again",13,10,0	;// errorpromt
+	   69 73 20 6E 6F
+	   74 20 63 6F 72
+	   72 65 63 74 2C
+	   50 6C 65 61 73
+	   65 20 63 68 6F
+	   6F 73 65 20 61
+	   67 61 69 6E 0D
+	   0A 00
+ 000001C1 4F 70 74 69 6F	menu		byte "Options",13,10
+	   6E 73 0D 0A
+ 000001CA  31 3A 50 6C 61				byte "1:Player vs Computer",13,10
+	   79 65 72 20 76
+	   73 20 43 6F 6D
+	   70 75 74 65 72
+	   0D 0A
+ 000001E0  32 3A 43 6F 6D				byte "2:Computer vs Computer",13,10
+	   70 75 74 65 72
+	   20 76 73 20 43
+	   6F 6D 70 75 74
+	   65 72 0D 0A
+ 000001F8  33 3A 45 78 69				byte "3:Exit",13,10,0
+	   74 0D 0A 00
+ 00000201 50 6C 61 79 65	P1win byte "Player 1 Win",13,10,0
+	   72 20 31 20 57
+	   69 6E 0D 0A 00
+ 00000210 50 6C 61 79 65	P2win byte "Player 2 Win",13,10,0
+	   72 20 32 20 57
+	   69 6E 0D 0A 00
+ 0000021F 49 74 20 69 73	Nowin byte "It is a tie",13,10,0
+	   20 61 20 74 69
+	   65 0D 0A 00
+ 0000022D 43 6F 6D 70 75	compTurn byte "Computer's turn",13,10,0
+	   74 65 72 27 73
+	   20 74 75 72 6E
+	   0D 0A 00
+ 0000023F 43 6F 6D 70 75	comp1Turn byte "Computer 1's turn",13,10,0
+	   74 65 72 20 31
+	   27 73 20 74 75
+	   72 6E 0D 0A 00
+ 00000253 43 6F 6D 70 75	comp2Turn byte "Computer 2's turn",13,10,0
+	   74 65 72 20 32
+	   27 73 20 74 75
+	   72 6E 0D 0A 00
+ 00000267 55 73 65 72 27	UserTurn byte "User's turn",13,10,0
+	   73 20 74 75 72
+	   6E 0D 0A 00
+ 00000275 50 6C 65 61 73	gameoverMenu byte "Please choose from following",13,10
+	   65 20 63 68 6F
+	   6F 73 65 20 66
+	   72 6F 6D 20 66
+	   6F 6C 6C 6F 77
+	   69 6E 67 0D 0A
+ 00000293  31 3A 52 65 70				byte "1:Replay the Game",13,10
+	   6C 61 79 20 74
+	   68 65 20 47 61
+	   6D 65 0D 0A
+ 000002A6  32 3A 44 69 73				byte "2:Display Game Statistics",13,10
+	   70 6C 61 79 20
+	   47 61 6D 65 20
+	   53 74 61 74 69
+	   73 74 69 63 73
+	   0D 0A
+ 000002C1  33 3A 45 78 69				byte "3:Exit the Game",13,10,0
+	   74 20 74 68 65
+	   20 47 61 6D 65
+	   0D 0A 00
+ 000002D3 54 6F 74 61 6C	gamePlayHeader byte "Total Game Played: ",0
+	   20 47 61 6D 65
+	   20 50 6C 61 79
+	   65 64 3A 20 00
+ 000002E7 47 61 6D 65 20	player1Header byte "Game won by player 1: ",0
+	   77 6F 6E 20 62
+	   79 20 70 6C 61
+	   79 65 72 20 31
+	   3A 20 00
+ 000002FE 47 61 6D 65 20	player2Header byte "Game won by player 2: ",0
+	   77 6F 6E 20 62
+	   79 20 70 6C 61
+	   79 65 72 20 32
+	   3A 20 00
+ 00000315 54 6F 74 61 6C	tiedGameHead byte "Total Number of game tied: ",0
+	   20 4E 75 6D 62
+	   65 72 20 6F 66
+	   20 67 61 6D 65
+	   20 74 69 65 64
+	   3A 20 00
+ 00000331 00000000		player1win dword 0
+ 00000335 00000000		player2win dword 0
+ 00000339 00000000		tiegame dword 0
+ 00000000			.code
+ 00000000			main PROC
+
+ 00000000  BA 00000000 R		mov edx,offset initialpromt							;// initial promt
+ 00000005  E8 00000000 E		call writestring									;// display
+ 0000000A  E8 00000000 E		call waitmsg										;// enter to continue
+ 0000000F			top:
+ 0000000F  E8 00000000 E		call clrscr											;// clearing the screen
+ 00000014  BA 000001C1 R		mov edx, offset menu								;// printing menu
+ 00000019  E8 00000000 E		call writestring									;// display
+					invoke BtoDW,offset GameBoard,offset DWGameBoard	;// filling the doubleword string
+ 0000001E  68 000000D6 R   *	    push   dword  ptr OFFSET FLAT: DWGameBoard
+ 00000023  68 000000AE R   *	    push   dword  ptr OFFSET FLAT: GameBoard
+ 00000028  E8 00000661	   *	    call   BtoDW
+ 0000002D			backfromerror:
+ 0000002D  E8 00000000 E		call readdec										;// reading choice
+ 00000032  83 F8 01			cmp eax,1				
+ 00000035  74 1E			je UserVsComp										;// player vs computer
+ 00000037  83 F8 02			cmp eax,2
+ 0000003A  0F 84 00000287		je CompVsComp										;// computer vs computer
+ 00000040  83 F8 03			cmp eax,3							
+ 00000043  0F 84 000005C9		je exits											;//exit
+ 00000049  BA 00000197 R		mov edx,offset errorpromt
+ 0000004E  E8 00000000 E		call writestring
+ 00000053  EB D8			jmp backfromerror						;// go to top to ask again
+ 00000055			UserVsComp:
+ 00000055  E8 00000000 E		call randomize							;// random seed
+ 0000005A  B8 00000002			mov eax,2								;// range 0-1
+ 0000005F  E8 00000000 E		call randomrange							;// procedure
+ 00000064  40				inc eax									;// making 1-2
+ 00000065  83 F8 01			cmp eax,1								;// deciding who gonna play first
+ 00000068  74 09			je compPlay1UVC
+ 0000006A  83 F8 02			cmp eax,2
+ 0000006D  0F 84 0000012A		je userPlay1UVC
+ 00000073			compPlay1UVC:
+ 00000073  E8 00000000 E			call clrscr							;// screen is clear
+						invoke PrintBoard, offset DWGameBoard, boardSlength
+ 00000078  FF 35 0000017F R *	    push   boardSlength
+ 0000007E  68 000000D6 R   *	    push   dword  ptr OFFSET FLAT: DWGameBoard
+ 00000083  E8 00000636	   *	    call   PrintBoard
+ 00000088  BA 0000022D R			mov edx,offset compTurn					;// displaying computer turn
+ 0000008D  E8 00000000 E			call writestring
+ 00000092  B8 000003E8				mov eax,1000 								; 1 second
+ 00000097  E8 00000000 E			call Delay
+						invoke reset2DefaultColor,offset GameBoard,offset DWGameBoard
+ 0000009C  68 000000D6 R   *	    push   dword  ptr OFFSET FLAT: DWGameBoard
+ 000000A1  68 000000AE R   *	    push   dword  ptr OFFSET FLAT: GameBoard
+ 000000A6  E8 00000793	   *	    call   reset2DefaultColor
+						invoke cm_xMove, 	offset DWGameBoard,offset indexArray		;// computer make move
+ 000000AB  68 00000176 R   *	    push   dword  ptr OFFSET FLAT: indexArray
+ 000000B0  68 000000D6 R   *	    push   dword  ptr OFFSET FLAT: DWGameBoard
+ 000000B5  E8 0000073A	   *	    call   cm_xMove
+ 000000BA  B8 000003E8				mov eax,1000 								; 1 second
+ 000000BF  E8 00000000 E			call Delay
+						invoke checkwin,	Offset DWGameBoard,offset indexArray		;// check if anyone win
+ 000000C4  68 00000176 R   *	    push   dword  ptr OFFSET FLAT: indexArray
+ 000000C9  68 000000D6 R   *	    push   dword  ptr OFFSET FLAT: DWGameBoard
+ 000000CE  E8 0000079B	   *	    call   checkwin
+ 000000D3  83 F8 03				cmp eax,3
+ 000000D6  0F 84 0000046A			je tie							;// if eax is 3 it means game tied
+ 000000DC  83 F8 01				cmp eax,1
+ 000000DF  75 2A				jne userPlay2UVC				;// if eax = 1 means player one win
+ 000000E1  FF 05 00000331 R			inc player1win					;// counting the winner	
+ 000000E7  E8 00000000 E			call clrscr						;// clearing screen before winner announcment
+ 000000EC  BA 00000201 R			mov edx,offset P1win		;// announcing the winner
+ 000000F1  E8 00000000 E			call writestring
+						invoke PrintBoard, offset DWGameBoard, boardSlength	;// printing the winner
+ 000000F6  FF 35 0000017F R *	    push   boardSlength
+ 000000FC  68 000000D6 R   *	    push   dword  ptr OFFSET FLAT: DWGameBoard
+ 00000101  E8 000005B8	   *	    call   PrintBoard
+ 00000106  E9 00000460				jmp gamefinish
+ 0000010B			userPlay2UVC:
+ 0000010B  E8 00000000 E			call clrscr							;// screen is clear
+						invoke PrintBoard, offset DWGameBoard, boardSlength
+ 00000110  FF 35 0000017F R *	    push   boardSlength
+ 00000116  68 000000D6 R   *	    push   dword  ptr OFFSET FLAT: DWGameBoard
+ 0000011B  E8 0000059E	   *	    call   PrintBoard
+ 00000120  BA 00000267 R			mov edx,offset UserTurn					;// displaying player turn
+ 00000125  E8 00000000 E			call writestring
+						invoke reset2DefaultColor,offset GameBoard,offset DWGameBoard
+ 0000012A  68 000000D6 R   *	    push   dword  ptr OFFSET FLAT: DWGameBoard
+ 0000012F  68 000000AE R   *	    push   dword  ptr OFFSET FLAT: GameBoard
+ 00000134  E8 00000705	   *	    call   reset2DefaultColor
+						invoke oMove, offset DWGameBoard,offset indexArray,offset entrypromt,offset errorpromt 	;// computer make move			
+ 00000139  68 00000197 R   *	    push   dword  ptr OFFSET FLAT: errorpromt
+ 0000013E  68 00000183 R   *	    push   dword  ptr OFFSET FLAT: entrypromt
+ 00000143  68 00000176 R   *	    push   dword  ptr OFFSET FLAT: indexArray
+ 00000148  68 000000D6 R   *	    push   dword  ptr OFFSET FLAT: DWGameBoard
+ 0000014D  E8 0000060A	   *	    call   oMove
+						invoke checkwin,Offset DWGameBoard,offset indexArray		;// check if anyone win
+ 00000152  68 00000176 R   *	    push   dword  ptr OFFSET FLAT: indexArray
+ 00000157  68 000000D6 R   *	    push   dword  ptr OFFSET FLAT: DWGameBoard
+ 0000015C  E8 0000070D	   *	    call   checkwin
+ 00000161  83 F8 03				cmp eax,3
+ 00000164  0F 84 000003DC			je tie								;// if eax is 3 it means game tied
+ 0000016A  83 F8 02				cmp eax,2
+ 0000016D  0F 85 FFFFFF00			jne compPlay1UVC					;// if eax = 1 means player one win
+ 00000173  FF 05 00000335 R			inc player2win					;// counting the winner	
+ 00000179  E8 00000000 E			call clrscr						;// clearing screen before winner announcment	
+ 0000017E  BA 00000210 R			mov edx,offset P2win		;// announcing the winner
+ 00000183  E8 00000000 E			call writestring
+						invoke PrintBoard, offset DWGameBoard, boardSlength	;// printing the winner
+ 00000188  FF 35 0000017F R *	    push   boardSlength
+ 0000018E  68 000000D6 R   *	    push   dword  ptr OFFSET FLAT: DWGameBoard
+ 00000193  E8 00000526	   *	    call   PrintBoard
+ 00000198  E9 000003CE				jmp gamefinish
+
+ 0000019D			userPlay1UVC:
+ 0000019D  E8 00000000 E			call clrscr							;// screen is clear
+						invoke PrintBoard, offset DWGameBoard, boardSlength
+ 000001A2  FF 35 0000017F R *	    push   boardSlength
+ 000001A8  68 000000D6 R   *	    push   dword  ptr OFFSET FLAT: DWGameBoard
+ 000001AD  E8 0000050C	   *	    call   PrintBoard
+ 000001B2  BA 00000267 R			mov edx,offset UserTurn					;// displaying player turn
+ 000001B7  E8 00000000 E			call writestring
+						invoke reset2DefaultColor,offset GameBoard,offset DWGameBoard
+ 000001BC  68 000000D6 R   *	    push   dword  ptr OFFSET FLAT: DWGameBoard
+ 000001C1  68 000000AE R   *	    push   dword  ptr OFFSET FLAT: GameBoard
+ 000001C6  E8 00000673	   *	    call   reset2DefaultColor
+						invoke xMove, offset DWGameBoard,offset indexArray,offset entrypromt,offset errorpromt 	;// computer make move			
+ 000001CB  68 00000197 R   *	    push   dword  ptr OFFSET FLAT: errorpromt
+ 000001D0  68 00000183 R   *	    push   dword  ptr OFFSET FLAT: entrypromt
+ 000001D5  68 00000176 R   *	    push   dword  ptr OFFSET FLAT: indexArray
+ 000001DA  68 000000D6 R   *	    push   dword  ptr OFFSET FLAT: DWGameBoard
+ 000001DF  E8 00000524	   *	    call   xMove
+						invoke checkwin,Offset DWGameBoard,offset indexArray		;// check if anyone win
+ 000001E4  68 00000176 R   *	    push   dword  ptr OFFSET FLAT: indexArray
+ 000001E9  68 000000D6 R   *	    push   dword  ptr OFFSET FLAT: DWGameBoard
+ 000001EE  E8 0000067B	   *	    call   checkwin
+ 000001F3  83 F8 03				cmp eax,3
+ 000001F6  0F 84 0000034A			je tie								;// if eax is 3 it means game tied
+ 000001FC  83 F8 01				cmp eax,1
+ 000001FF  75 2A				jne compPlay2UVC					;// if eax = 1 means player one win
+ 00000201  FF 05 00000331 R			inc player1win					;// counting the winner	
+ 00000207  E8 00000000 E			call clrscr						;// clearing screen before winner announcment	
+ 0000020C  BA 00000201 R			mov edx,offset P1win		;// announcing the winner
+ 00000211  E8 00000000 E			call writestring
+						invoke PrintBoard, offset DWGameBoard, boardSlength	;// printing the winner
+ 00000216  FF 35 0000017F R *	    push   boardSlength
+ 0000021C  68 000000D6 R   *	    push   dword  ptr OFFSET FLAT: DWGameBoard
+ 00000221  E8 00000498	   *	    call   PrintBoard
+ 00000226  E9 00000340				jmp gamefinish
+ 0000022B			compPlay2UVC:
+ 0000022B  E8 00000000 E			call clrscr							;// screen is clear
+						invoke PrintBoard, offset DWGameBoard, boardSlength
+ 00000230  FF 35 0000017F R *	    push   boardSlength
+ 00000236  68 000000D6 R   *	    push   dword  ptr OFFSET FLAT: DWGameBoard
+ 0000023B  E8 0000047E	   *	    call   PrintBoard
+ 00000240  BA 0000022D R			mov edx,offset compTurn					;// displaying computer turn
+ 00000245  E8 00000000 E			call writestring
+ 0000024A  B8 000003E8				mov eax,1000 								; 1 second
+ 0000024F  E8 00000000 E			call Delay
+						invoke reset2DefaultColor,offset GameBoard,offset DWGameBoard
+ 00000254  68 000000D6 R   *	    push   dword  ptr OFFSET FLAT: DWGameBoard
+ 00000259  68 000000AE R   *	    push   dword  ptr OFFSET FLAT: GameBoard
+ 0000025E  E8 000005DB	   *	    call   reset2DefaultColor
+						invoke cm_oMove, 	offset DWGameBoard,offset indexArray		;// computer make move
+ 00000263  68 00000176 R   *	    push   dword  ptr OFFSET FLAT: indexArray
+ 00000268  68 000000D6 R   *	    push   dword  ptr OFFSET FLAT: DWGameBoard
+ 0000026D  E8 0000053B	   *	    call   cm_oMove
+ 00000272  B8 000003E8				mov eax,1000 								; 1 second
+ 00000277  E8 00000000 E			call Delay
+						invoke checkwin,	Offset DWGameBoard,offset indexArray		;// check if anyone win
+ 0000027C  68 00000176 R   *	    push   dword  ptr OFFSET FLAT: indexArray
+ 00000281  68 000000D6 R   *	    push   dword  ptr OFFSET FLAT: DWGameBoard
+ 00000286  E8 000005E3	   *	    call   checkwin
+ 0000028B  83 F8 03				cmp eax,3
+ 0000028E  0F 84 000002B2			je tie							;// if eax is 3 it means game tied
+ 00000294  83 F8 02				cmp eax,2
+ 00000297  0F 85 FFFFFF00			jne userPlay1UVC				;// if eax = 1 means player one win
+ 0000029D  FF 05 00000335 R			inc player2win					;// counting the winner	
+ 000002A3  E8 00000000 E			call clrscr						;// clearing screen before winner announcment	
+ 000002A8  BA 00000210 R			mov edx,offset P2win		;// announcing the winner
+ 000002AD  E8 00000000 E			call writestring
+						invoke PrintBoard, offset DWGameBoard, boardSlength	;// printing the winner
+ 000002B2  FF 35 0000017F R *	    push   boardSlength
+ 000002B8  68 000000D6 R   *	    push   dword  ptr OFFSET FLAT: DWGameBoard
+ 000002BD  E8 000003FC	   *	    call   PrintBoard
+ 000002C2  E9 000002A4				jmp gamefinish
+ 000002C7			CompVsComp:
+ 000002C7  E8 00000000 E		call randomize							;// random seed
+ 000002CC  B8 00000002			mov eax,2								;// range 0-1
+ 000002D1  E8 00000000 E		call randomrange							;// procedure
+ 000002D6  40				inc eax									;// making 1-2
+ 000002D7  83 F8 01			cmp eax,1								;// deciding who gonna play first
+ 000002DA  74 09			je comp1Play1CVC
+ 000002DC  83 F8 02			cmp eax,2
+ 000002DF  0F 84 00000134		je comp2Play1CVC
+ 000002E5			comp1Play1CVC:
+ 000002E5  E8 00000000 E			call clrscr							;// screen is clear
+						invoke PrintBoard, offset DWGameBoard, boardSlength
+ 000002EA  FF 35 0000017F R *	    push   boardSlength
+ 000002F0  68 000000D6 R   *	    push   dword  ptr OFFSET FLAT: DWGameBoard
+ 000002F5  E8 000003C4	   *	    call   PrintBoard
+ 000002FA  BA 0000023F R			mov edx,offset comp1Turn					;// displaying computer turn
+ 000002FF  E8 00000000 E			call writestring
+ 00000304  B8 000003E8				mov eax,1000 								; 1 second
+ 00000309  E8 00000000 E			call Delay
+						invoke reset2DefaultColor,offset GameBoard,offset DWGameBoard
+ 0000030E  68 000000D6 R   *	    push   dword  ptr OFFSET FLAT: DWGameBoard
+ 00000313  68 000000AE R   *	    push   dword  ptr OFFSET FLAT: GameBoard
+ 00000318  E8 00000521	   *	    call   reset2DefaultColor
+						invoke cm_xMove, 	offset DWGameBoard,offset indexArray		;// computer make move
+ 0000031D  68 00000176 R   *	    push   dword  ptr OFFSET FLAT: indexArray
+ 00000322  68 000000D6 R   *	    push   dword  ptr OFFSET FLAT: DWGameBoard
+ 00000327  E8 000004C8	   *	    call   cm_xMove
+ 0000032C  B8 000003E8				mov eax,1000 								; 1 second
+ 00000331  E8 00000000 E			call Delay
+						invoke checkwin,	Offset DWGameBoard,offset indexArray		;// check if anyone win
+ 00000336  68 00000176 R   *	    push   dword  ptr OFFSET FLAT: indexArray
+ 0000033B  68 000000D6 R   *	    push   dword  ptr OFFSET FLAT: DWGameBoard
+ 00000340  E8 00000529	   *	    call   checkwin
+ 00000345  83 F8 03				cmp eax,3
+ 00000348  0F 84 000001F8			je tie							;// if eax is 3 it means game tied
+ 0000034E  83 F8 01				cmp eax,1
+ 00000351  75 2A				jne comp2Play2CVC				;// if eax = 1 means player one win
+ 00000353  FF 05 00000331 R			inc player1win					;// counting the winner	
+ 00000359  E8 00000000 E			call clrscr						;// clearing screen before winner announcment	
+ 0000035E  BA 00000201 R			mov edx,offset P1win		;// announcing the winner
+ 00000363  E8 00000000 E			call writestring
+						invoke PrintBoard, offset DWGameBoard, boardSlength	;// printing the winner
+ 00000368  FF 35 0000017F R *	    push   boardSlength
+ 0000036E  68 000000D6 R   *	    push   dword  ptr OFFSET FLAT: DWGameBoard
+ 00000373  E8 00000346	   *	    call   PrintBoard
+ 00000378  E9 000001EE				jmp gamefinish
+ 0000037D			comp2Play2CVC:
+ 0000037D  E8 00000000 E			call clrscr							;// screen is clear
+						invoke PrintBoard, offset DWGameBoard, boardSlength
+ 00000382  FF 35 0000017F R *	    push   boardSlength
+ 00000388  68 000000D6 R   *	    push   dword  ptr OFFSET FLAT: DWGameBoard
+ 0000038D  E8 0000032C	   *	    call   PrintBoard
+ 00000392  BA 00000253 R			mov edx,offset comp2Turn					;// displaying computer turn
+ 00000397  E8 00000000 E			call writestring
+ 0000039C  B8 000003E8				mov eax,1000 								; 1 second
+ 000003A1  E8 00000000 E			call Delay
+						invoke reset2DefaultColor,offset GameBoard,offset DWGameBoard
+ 000003A6  68 000000D6 R   *	    push   dword  ptr OFFSET FLAT: DWGameBoard
+ 000003AB  68 000000AE R   *	    push   dword  ptr OFFSET FLAT: GameBoard
+ 000003B0  E8 00000489	   *	    call   reset2DefaultColor
+						invoke cm_oMove, 	offset DWGameBoard,offset indexArray		;// computer make move
+ 000003B5  68 00000176 R   *	    push   dword  ptr OFFSET FLAT: indexArray
+ 000003BA  68 000000D6 R   *	    push   dword  ptr OFFSET FLAT: DWGameBoard
+ 000003BF  E8 000003E9	   *	    call   cm_oMove
+ 000003C4  B8 000003E8				mov eax,1000 								; 1 second
+ 000003C9  E8 00000000 E			call Delay
+						invoke checkwin,	Offset DWGameBoard,offset indexArray		;// check if anyone win
+ 000003CE  68 00000176 R   *	    push   dword  ptr OFFSET FLAT: indexArray
+ 000003D3  68 000000D6 R   *	    push   dword  ptr OFFSET FLAT: DWGameBoard
+ 000003D8  E8 00000491	   *	    call   checkwin
+ 000003DD  83 F8 03				cmp eax,3
+ 000003E0  0F 84 00000160			je tie							;// if eax is 3 it means game tied
+ 000003E6  83 F8 02				cmp eax,2
+ 000003E9  0F 85 FFFFFEF6			jne comp1Play1CVC				;// if eax = 1 means player one win
+ 000003EF  FF 05 00000335 R			inc player2win					;// counting the winner	
+ 000003F5  E8 00000000 E			call clrscr						;// clearing screen before winner announcment	
+ 000003FA  BA 00000210 R			mov edx,offset P2win		;// announcing the winner
+ 000003FF  E8 00000000 E			call writestring
+						invoke PrintBoard, offset DWGameBoard, boardSlength	;// printing the winner
+ 00000404  FF 35 0000017F R *	    push   boardSlength
+ 0000040A  68 000000D6 R   *	    push   dword  ptr OFFSET FLAT: DWGameBoard
+ 0000040F  E8 000002AA	   *	    call   PrintBoard
+ 00000414  E9 00000152				jmp gamefinish
+ 00000419			comp2Play1CVC:
+ 00000419  E8 00000000 E			call clrscr							;// screen is clear
+						invoke PrintBoard, offset DWGameBoard, boardSlength
+ 0000041E  FF 35 0000017F R *	    push   boardSlength
+ 00000424  68 000000D6 R   *	    push   dword  ptr OFFSET FLAT: DWGameBoard
+ 00000429  E8 00000290	   *	    call   PrintBoard
+ 0000042E  BA 00000253 R			mov edx,offset comp2Turn					;// displaying computer turn
+ 00000433  E8 00000000 E			call writestring
+ 00000438  B8 000003E8				mov eax,1000 								; 1 second
+ 0000043D  E8 00000000 E			call Delay
+						invoke reset2DefaultColor,offset GameBoard,offset DWGameBoard
+ 00000442  68 000000D6 R   *	    push   dword  ptr OFFSET FLAT: DWGameBoard
+ 00000447  68 000000AE R   *	    push   dword  ptr OFFSET FLAT: GameBoard
+ 0000044C  E8 000003ED	   *	    call   reset2DefaultColor
+						invoke cm_xMove, 	offset DWGameBoard,offset indexArray		;// computer make move
+ 00000451  68 00000176 R   *	    push   dword  ptr OFFSET FLAT: indexArray
+ 00000456  68 000000D6 R   *	    push   dword  ptr OFFSET FLAT: DWGameBoard
+ 0000045B  E8 00000394	   *	    call   cm_xMove
+ 00000460  B8 000003E8				mov eax,1000 								; 1 second
+ 00000465  E8 00000000 E			call Delay
+						invoke checkwin,	Offset DWGameBoard,offset indexArray		;// check if anyone win
+ 0000046A  68 00000176 R   *	    push   dword  ptr OFFSET FLAT: indexArray
+ 0000046F  68 000000D6 R   *	    push   dword  ptr OFFSET FLAT: DWGameBoard
+ 00000474  E8 000003F5	   *	    call   checkwin
+ 00000479  83 F8 03				cmp eax,3
+ 0000047C  0F 84 000000C4			je tie							;// if eax is 3 it means game tied
+ 00000482  83 F8 01				cmp eax,1
+ 00000485  75 2A				jne comp1Play2CVC				;// if eax = 1 means player one win
+ 00000487  FF 05 00000335 R			inc player2win					;// counting the winner	
+ 0000048D  E8 00000000 E			call clrscr						;// clearing screen before winner announcment	
+ 00000492  BA 00000210 R			mov edx,offset P2win		;// announcing the winner
+ 00000497  E8 00000000 E			call writestring
+						invoke PrintBoard, offset DWGameBoard, boardSlength	;// printing the winner
+ 0000049C  FF 35 0000017F R *	    push   boardSlength
+ 000004A2  68 000000D6 R   *	    push   dword  ptr OFFSET FLAT: DWGameBoard
+ 000004A7  E8 00000212	   *	    call   PrintBoard
+ 000004AC  E9 000000BA				jmp gamefinish
+ 000004B1			comp1Play2CVC:
+ 000004B1  E8 00000000 E			call clrscr							;// screen is clear
+						invoke PrintBoard, offset DWGameBoard, boardSlength
+ 000004B6  FF 35 0000017F R *	    push   boardSlength
+ 000004BC  68 000000D6 R   *	    push   dword  ptr OFFSET FLAT: DWGameBoard
+ 000004C1  E8 000001F8	   *	    call   PrintBoard
+ 000004C6  BA 0000023F R			mov edx,offset comp1Turn					;// displaying computer turn
+ 000004CB  E8 00000000 E			call writestring
+ 000004D0  B8 000003E8				mov eax,1000 								; 1 second
+ 000004D5  E8 00000000 E			call Delay
+						invoke reset2DefaultColor,offset GameBoard,offset DWGameBoard
+ 000004DA  68 000000D6 R   *	    push   dword  ptr OFFSET FLAT: DWGameBoard
+ 000004DF  68 000000AE R   *	    push   dword  ptr OFFSET FLAT: GameBoard
+ 000004E4  E8 00000355	   *	    call   reset2DefaultColor
+						invoke cm_oMove, 	offset DWGameBoard,offset indexArray		;// computer make move
+ 000004E9  68 00000176 R   *	    push   dword  ptr OFFSET FLAT: indexArray
+ 000004EE  68 000000D6 R   *	    push   dword  ptr OFFSET FLAT: DWGameBoard
+ 000004F3  E8 000002B5	   *	    call   cm_oMove
+ 000004F8  B8 000003E8				mov eax,1000 								; 1 second
+ 000004FD  E8 00000000 E			call Delay
+						invoke checkwin,	Offset DWGameBoard,offset indexArray		;// check if anyone win
+ 00000502  68 00000176 R   *	    push   dword  ptr OFFSET FLAT: indexArray
+ 00000507  68 000000D6 R   *	    push   dword  ptr OFFSET FLAT: DWGameBoard
+ 0000050C  E8 0000035D	   *	    call   checkwin
+ 00000511  83 F8 03				cmp eax,3
+ 00000514  74 30				je tie							;// if eax is 3 it means game tied
+ 00000516  83 F8 02				cmp eax,2
+ 00000519  0F 85 FFFFFEFA			jne comp2Play1CVC				;// if eax = 1 means player one win
+ 0000051F  FF 05 00000331 R			inc player1win					;// counting the winner	
+ 00000525  E8 00000000 E			call clrscr						;// clearing screen before winner announcment	
+ 0000052A  BA 00000201 R			mov edx,offset P1win			;// announcing the winner
+ 0000052F  E8 00000000 E			call writestring
+						invoke PrintBoard, offset DWGameBoard, boardSlength	;// printing the winner
+ 00000534  FF 35 0000017F R *	    push   boardSlength
+ 0000053A  68 000000D6 R   *	    push   dword  ptr OFFSET FLAT: DWGameBoard
+ 0000053F  E8 0000017A	   *	    call   PrintBoard
+ 00000544  EB 25				jmp gamefinish
+ 00000546			tie:
+ 00000546  E8 00000000 E		call clrscr						;// clearing screen before winner announcment	
+ 0000054B  FF 05 00000339 R		inc tiegame
+ 00000551  BA 0000021F R		mov edx,offset Nowin		;// announcing the winner
+ 00000556  E8 00000000 E		call writestring
+					invoke PrintBoard, offset DWGameBoard, boardSlength	;// printing the winner
+ 0000055B  FF 35 0000017F R *	    push   boardSlength
+ 00000561  68 000000D6 R   *	    push   dword  ptr OFFSET FLAT: DWGameBoard
+ 00000566  E8 00000153	   *	    call   PrintBoard
+ 0000056B			gamefinish:
+ 0000056B  BA 00000275 R		mov edx,offset gameoverMenu			;// display end of the game menu
+ 00000570  E8 00000000 E		call writestring	
+ 00000575  E8 00000000 E		call readdec			;// reading entry
+ 0000057A  83 F8 01			cmp eax,1
+ 0000057D  0F 84 FFFFFA8C		je top				;// replay the game
+ 00000583  83 F8 02			cmp eax,2
+ 00000586  74 15			je displayStat
+ 00000588  83 F8 03			cmp eax,3			;// exit the game
+ 0000058B  0F 84 00000081		je exits
+ 00000591  BA 00000197 R		mov edx,offset errorpromt		;// wrong entry error message
+ 00000596  E8 00000000 E		call writestring
+ 0000059B  EB CE			jmp gamefinish
+ 0000059D			displayStat:
+ 0000059D  BA 000002D3 R		mov edx, offset gamePlayHeader			;// header 
+ 000005A2  E8 00000000 E		call writestring
+ 000005A7  A1 00000331 R		mov eax,player1win					;// number
+ 000005AC  03 05 00000335 R		add eax,player2win
+ 000005B2  03 05 00000339 R		add eax,tiegame
+ 000005B8  E8 00000000 E		call writedec
+ 000005BD  E8 00000000 E		call crlf
+ 000005C2  BA 000002E7 R		mov edx, offset player1Header			;// header 
+ 000005C7  E8 00000000 E		call writestring
+ 000005CC  A1 00000331 R		mov eax,player1win						;// number
+ 000005D1  E8 00000000 E		call writedec
+ 000005D6  E8 00000000 E		call crlf
+ 000005DB  BA 000002FE R		mov edx, offset player2Header			;// header 
+ 000005E0  E8 00000000 E		call writestring
+ 000005E5  A1 00000335 R		mov eax,player2win						;// number
+ 000005EA  E8 00000000 E		call writedec
+ 000005EF  E8 00000000 E		call crlf
+ 000005F4  BA 00000315 R		mov edx, offset tiedGameHead			;// header 
+ 000005F9  E8 00000000 E		call writestring
+ 000005FE  A1 00000339 R		mov eax,tiegame						;// number
+ 00000603  E8 00000000 E		call writedec
+ 00000608  E8 00000000 E		call crlf
+ 0000060D  E9 FFFFFF59			jmp gamefinish
+ 00000612			exits:
+ 00000612  BA 000002D3 R		mov edx, offset gamePlayHeader			;// header 
+ 00000617  E8 00000000 E		call writestring
+ 0000061C  A1 00000331 R		mov eax,player1win					;// number
+ 00000621  03 05 00000335 R		add eax,player2win
+ 00000627  03 05 00000339 R		add eax,tiegame
+ 0000062D  E8 00000000 E		call writedec
+ 00000632  E8 00000000 E		call crlf
+ 00000637  BA 000002E7 R		mov edx, offset player1Header			;// header 
+ 0000063C  E8 00000000 E		call writestring
+ 00000641  A1 00000331 R		mov eax,player1win						;// number
+ 00000646  E8 00000000 E		call writedec
+ 0000064B  E8 00000000 E		call crlf
+ 00000650  BA 000002FE R		mov edx, offset player2Header			;// header 
+ 00000655  E8 00000000 E		call writestring
+ 0000065A  A1 00000335 R		mov eax,player2win						;// number
+ 0000065F  E8 00000000 E		call writedec
+ 00000664  E8 00000000 E		call crlf
+ 00000669  BA 00000315 R		mov edx, offset tiedGameHead			;// header 
+ 0000066E  E8 00000000 E		call writestring
+ 00000673  A1 00000339 R		mov eax,tiegame						;// number
+ 00000678  E8 00000000 E		call writedec
+ 0000067D  E8 00000000 E		call crlf
+ 00000682  E8 00000000 E		call waitmsg				;// wait until key is pressed
+					
+				EXIT
+ 00000687  6A 00	   *	    push   +000000000h
+ 00000689  E8 00000000 E   *	    call   ExitProcess
+ 0000068E			main ENDP
+ 0000068E			BtoDW PROC,source:dword,dest:dword
+				;//-----------------------------------------------------
+				;// BtoDW
+				;// fill the target dword string array from source byte string array
+				;// Receives:source and destination addrress
+				;// 
+				;//-----------------------------------------------------
+ 0000068E  55		   *	    push   ebp
+ 0000068F  8B EC	   *	    mov    ebp, esp
+ 00000691			.code
+ 00000691  8B 55 08			mov edx,source							;// finding string lenth
+ 00000694  8B 5D 0C			mov ebx,dest
+ 00000697  E8 00000000 E		call strlength							;// procedure for strlength
+ 0000069C  8B C8			mov ecx, eax							;// ecx for loop through
+ 0000069E  41				inc ecx									;// will copy deliminiter too
+ 0000069F  BE 00000000			mov esi,0								;// for index 
+ 000006A4			copyLoop:
+ 000006A4  B8 00000000			mov eax,0								;// clearing eax
+ 000006A9  B8 00000007			mov eax,7 +(0 *16)						;// clearing eax
+ 000006AE  C1 E0 08			shl eax,8								;// shifting by a byte
+ 000006B1  8A 04 16			mov al,[edx][esi]						;// al has character of first array
+ 000006B4  89 04 B3			mov [ebx][type dword*esi],eax			;// copying to new array
+ 000006B7  46				inc esi									;// loop index increment
+ 000006B8  E2 EA			loop copyLoop							;// loop counter
+					RET
+ 000006BA  C9		   *	    leave  
+ 000006BB  C2 0008	   *	    ret    00008h
+ 000006BE			BtoDW ENDP
+
+ 000006BE			PrintBoard PROC, DWString:dword, stringL:dword
+				;//-----------------------------------------------------
+				;// PrintBoard
+				;// print doubleword string array with color code hidden in ah
+				;// Receives:source addrress
+				;// 
+				;//-----------------------------------------------------
+ 000006BE  55		   *	    push   ebp
+ 000006BF  8B EC	   *	    mov    ebp, esp
+ 000006C1				.code
+ 000006C1  8B 5D 08			mov ebx,DWString						;// addrress of string
+ 000006C4  BE 00000000			mov esi,0								;// index
+ 000006C9  8B 4D 0C			mov ecx,stringL
+ 000006CC			printLoop:
+ 000006CC  8B 04 B3			mov eax,[ebx][type dword*esi]			;// copying first character
+ 000006CF  C1 C8 08			ror eax,8								;// color setup because color code is strarting ah
+ 000006D2  E8 00000000 E		call settextcolor						;// procedure for textcolor
+ 000006D7  C1 C0 08			rol eax,8								;// back to normal
+ 000006DA  E8 00000000 E		call writechar							;// calling printchar
+ 000006DF  46				inc esi									;// loop increment
+ 000006E0  E2 EA			loop printLoop							;// loop counter
+					RET	
+ 000006E2  C9		   *	    leave  
+ 000006E3  C2 0008	   *	    ret    00008h
+ 000006E6			PrintBoard ENDP
+
+ 000006E6			changeColor PROC, DWString:dword, index:dword,colorcode:dword
+				;//-----------------------------------------------------
+				;// changeColor
+				;// change the color code hidden in double array string
+				;// as requested 
+				;//-----------------------------------------------------
+ 000006E6  55		   *	    push   ebp
+ 000006E7  8B EC	   *	    mov    ebp, esp
+ 000006E9				.code
+ 000006E9  8B 45 08			mov eax,DWString				;// addrress of array
+ 000006EC  8B 75 0C			mov esi,index					;// index of char that need to be changed
+ 000006EF  4E				dec esi							;// strarting from space
+ 000006F0  B9 00000003			mov ecx,3						;// we also want to chage color around letter
+ 000006F5			colorLoop:
+ 000006F5  8B 5D 10			mov ebx, colorcode				;// ebx has color code
+ 000006F8  C1 E3 08			shl ebx,8						;// shift left to make room for character in bl
+ 000006FB  8A 1C B0			mov bl,[eax][type dword*esi]	;// preserve character
+ 000006FE  89 1C B0			mov [eax][type dword*esi],ebx	;// copy back to string 
+ 00000701  46				inc esi							;// increment index
+ 00000702  E2 F1			loop colorLoop					;// loop counter
+					RET		
+ 00000704  C9		   *	    leave  
+ 00000705  C2 000C	   *	    ret    0000Ch
+ 00000708			changeColor ENDP
+
+ 00000708			xMove PROC, DWString:dword,indexArray1:dword,entrypromt1:dword,errorpromt1:dword
+				;//-----------------------------------------------------
+				;// change the string accordingly with char
+				;// print doubleword string array with color code hidden in ah
+				;// Receives:source addrress,gridNo and indexArray
+				;//-----------------------------------------------------
+ 00000708  55		   *	    push   ebp
+ 00000709  8B EC	   *	    mov    ebp, esp
+ 0000070B				.code
+ 0000070B  8B 55 10			mov edx,entrypromt1							;// entrypromt addrress
+ 0000070E  E8 00000000 E		call writestring
+ 00000713			backtoentry:									;// display
+ 00000713  E8 00000000 E		call readdec								;// reading decimal
+ 00000718  83 F8 00			cmp eax,0
+ 0000071B  76 35			jbe wrongEntry								;// if entry is zero or below zero its error
+ 0000071D  83 F8 0A			cmp eax,10
+ 00000720  73 30			jae	wrongEntry								;// if entry is 10 or above its error
+ 00000722  8B 4D 0C			mov ecx,indexArray1
+ 00000725  0F B6 74 08 FF		movzx esi,byte ptr [ecx][eax-1]				;// esi will hold right index on DWString
+ 0000072A  8B 55 08			mov edx,DWString							;// dwstring addrress
+ 0000072D  B3 58			mov bl,'X'
+ 0000072F  38 1C B2			cmp [edx][type dword*esi],bl				;// comparing if entry is already occupied
+ 00000732  74 1E			je wrongEntry								;// if it is, display error 
+ 00000734  B3 4F			mov bl,'O'
+ 00000736  38 1C B2			cmp [edx][type dword*esi],bl				;// comparing if entry is already occupied
+ 00000739  74 17			je wrongEntry								;// if it is, display error
+ 0000073B  B3 58			mov bl,'X'
+ 0000073D  88 1C B2			mov [edx][type dword*esi],bl				;// if everthing good copy it
+					invoke changeColor, DWString, esi,(blue +(white*16))	;// changing the color of char
+ 00000740  68 000000F1	   *	    push   +0000000F1h
+ 00000745  56		   *	    push   esi
+ 00000746  FF 75 08	   *	    push   dword  ptr ss:[ebp]+000000008h
+ 00000749  E8 FFFFFF98	   *	    call   changeColor
+					RET	
+ 0000074E  C9		   *	    leave  
+ 0000074F  C2 0010	   *	    ret    00010h
+ 00000752			wrongEntry:
+ 00000752  8B 55 14			mov edx,errorpromt1
+ 00000755  E8 00000000 E		call writestring
+ 0000075A  EB B7			jmp backtoentry
+ 0000075C			xMove ENDP
+ 0000075C			oMove PROC, DWString:dword,indexArray1:dword,entrypromt1:dword,errorpromt1:dword
+				;//-----------------------------------------------------
+				;// change the string accordingly with char
+				;// print doubleword string array with color code hidden in ah
+				;// Receives:source addrress,gridNo and indexArray
+				;//-----------------------------------------------------
+ 0000075C  55		   *	    push   ebp
+ 0000075D  8B EC	   *	    mov    ebp, esp
+ 0000075F				.code
+ 0000075F  8B 55 10			mov edx,entrypromt1							;// entrypromt addrress
+ 00000762  E8 00000000 E		call writestring
+ 00000767			backtoentry:									;// display
+ 00000767  E8 00000000 E		call readdec								;// reading decimal
+ 0000076C  83 F8 00			cmp eax,0
+ 0000076F  76 32			jbe wrongEntry								;// if entry is zero or below zero its error
+ 00000771  83 F8 0A			cmp eax,10
+ 00000774  73 2D			jae	wrongEntry								;// if entry is 10 or above its error
+ 00000776  8B 4D 0C			mov ecx,indexArray1
+ 00000779  0F B6 74 08 FF		movzx esi,byte ptr [ecx][eax-1]				;// esi will hold right index on DWString
+ 0000077E  8B 55 08			mov edx,DWString							;// dwstring addrress
+ 00000781  B3 58			mov bl,'X'
+ 00000783  38 1C B2			cmp [edx][type dword*esi],bl				;// comparing if entry is already occupied
+ 00000786  74 1B			je wrongEntry								;// if it is, display error 
+ 00000788  B3 4F			mov bl,'O'
+ 0000078A  38 1C B2			cmp [edx][type dword*esi],bl				;// comparing if entry is already occupied
+ 0000078D  74 14			je wrongEntry								;// if it is, display error
+ 0000078F  B3 4F			mov bl,'O'
+ 00000791  88 1C B2			mov [edx][type dword*esi],bl				;// if everthing good copy it
+					invoke changeColor, DWString, esi,(white +(blue*16))	;// changing the color of char
+ 00000794  6A 1F	   *	    push   +00000001Fh
+ 00000796  56		   *	    push   esi
+ 00000797  FF 75 08	   *	    push   dword  ptr ss:[ebp]+000000008h
+ 0000079A  E8 FFFFFF47	   *	    call   changeColor
+					RET	
+ 0000079F  C9		   *	    leave  
+ 000007A0  C2 0010	   *	    ret    00010h
+ 000007A3			wrongEntry:
+ 000007A3  8B 55 14			mov edx,errorpromt1
+ 000007A6  E8 00000000 E		call writestring
+ 000007AB  EB BA			jmp backtoentry
+ 000007AD			oMove ENDP
+
+ 000007AD			cm_oMove PROC, DWString:dword,indexArray1
+				;//-----------------------------------------------------
+				;// change the string accordingly with char by computer
+				;// also adjest the doubleword string array with color code hidden in second byte
+				;// Receives:source addrress,gridNo and indexArray
+				;//-----------------------------------------------------
+ 000007AD  55		   *	    push   ebp
+ 000007AE  8B EC	   *	    mov    ebp, esp
+ 000007B0				.code
+ 000007B0  B8 00000005			mov eax,5									;// going to center if available
+ 000007B5  EB 10			jmp norandom
+ 000007B7			random:
+ 000007B7  E8 00000000 E		call randomize								;// random seed
+ 000007BC  B8 00000009			mov eax,9									;// 0-8 range
+ 000007C1  E8 00000000 E		call randomrange							;// random number in eax
+ 000007C6  40				inc eax										;// making it 1-9
+ 000007C7			norandom:
+ 000007C7  8B 4D 0C			mov ecx,indexArray1
+ 000007CA  0F B6 74 08 FF		movzx esi,byte ptr [ecx][eax-1]				;// esi will hold right index on DWString
+ 000007CF  8B 55 08			mov edx,DWString							;// dwstring addrress
+ 000007D2  B3 58			mov bl,'X'
+ 000007D4  38 1C B2			cmp [edx][type dword*esi],bl				;// comparing if entry is already occupied
+ 000007D7  74 DE			je random
+ 000007D9  B3 4F			mov bl,'O'
+ 000007DB  38 1C B2			cmp [edx][type dword*esi],bl				;// comparing if entry is already occupied
+ 000007DE  74 D7			je random
+ 000007E0  B3 4F			mov bl,'O'
+ 000007E2  88 1C B2			mov [edx][type dword*esi],bl				;// if everthing good copy it
+					invoke changeColor, DWString, esi,(white +(blue*16))	;// changing the color of char
+ 000007E5  6A 1F	   *	    push   +00000001Fh
+ 000007E7  56		   *	    push   esi
+ 000007E8  FF 75 08	   *	    push   dword  ptr ss:[ebp]+000000008h
+ 000007EB  E8 FFFFFEF6	   *	    call   changeColor
+					RET	
+ 000007F0  C9		   *	    leave  
+ 000007F1  C2 0008	   *	    ret    00008h
+ 000007F4			cm_oMove ENDP
+ 000007F4			cm_xMove PROC, DWString:dword,indexArray1
+				;//-----------------------------------------------------
+				;// change the string accordingly with char by computer
+				;// also adjest the doubleword string array with color code hidden in second byte
+				;// Receives:source addrress,gridNo and indexArray
+				;//-----------------------------------------------------
+ 000007F4  55		   *	    push   ebp
+ 000007F5  8B EC	   *	    mov    ebp, esp
+ 000007F7				.code
+ 000007F7  B8 00000005			mov eax,5									;// going to center if available
+ 000007FC  EB 10			jmp norandom
+ 000007FE			random:
+ 000007FE  E8 00000000 E		call randomize								;// random seed
+ 00000803  B8 00000009			mov eax,9									;// 0-8 range
+ 00000808  E8 00000000 E		call randomrange							;// random number in eax
+ 0000080D  40				inc eax										;// making it 1-9
+ 0000080E			norandom:
+ 0000080E  8B 4D 0C			mov ecx,indexArray1
+ 00000811  0F B6 74 08 FF		movzx esi,byte ptr [ecx][eax-1]				;// esi will hold right index on DWString
+ 00000816  8B 55 08			mov edx,DWString							;// dwstring addrress
+ 00000819  B3 58			mov bl,'X'
+ 0000081B  38 1C B2			cmp [edx][type dword*esi],bl				;// comparing if entry is already occupied
+ 0000081E  74 DE			je random
+ 00000820  B3 4F			mov bl,'O'
+ 00000822  38 1C B2			cmp [edx][type dword*esi],bl				;// comparing if entry is already occupied
+ 00000825  74 D7			je random
+ 00000827  B3 58			mov bl,'X'
+ 00000829  88 1C B2			mov [edx][type dword*esi],bl				;// if everthing good copy it
+					invoke changeColor, DWString, esi,(blue +(white*16))	;// changing the color of char
+ 0000082C  68 000000F1	   *	    push   +0000000F1h
+ 00000831  56		   *	    push   esi
+ 00000832  FF 75 08	   *	    push   dword  ptr ss:[ebp]+000000008h
+ 00000835  E8 FFFFFEAC	   *	    call   changeColor
+					RET	
+ 0000083A  C9		   *	    leave  
+ 0000083B  C2 0008	   *	    ret    00008h
+ 0000083E			cm_xMove ENDP
+
+ 0000083E			reset2DefaultColor PROC,source:dword,dest:dword
+				;//-----------------------------------------------------
+				;// clear all color scheme in double word string
+				;// receive dword string and byte string
+				;// 
+				;//-----------------------------------------------------
+ 0000083E  55		   *	    push   ebp
+ 0000083F  8B EC	   *	    mov    ebp, esp
+ 00000841			.code
+ 00000841  8B 55 08			mov edx,source							;// finding string lenth
+ 00000844  E8 00000000 E		call strlength							;// procedure for strlength
+ 00000849  8B C8			mov ecx, eax							;// ecx for loop through
+ 0000084B  8B 55 0C			mov edx,dest							;// address of dword string
+ 0000084E  41				inc ecx									;// will copy deliminiter too
+ 0000084F  BE 00000000	mov esi,0								;// for index 
+ 00000854			copyLoop:
+ 00000854  B8 00000000			mov eax,0								;// clearing eax
+ 00000859  B8 00000007			mov eax,7 +(0 *16)						;// setting the default color
+ 0000085E  C1 E0 08			shl eax,8								;// shifting by a byte
+ 00000861  8A 04 B2			mov al,[edx][type dword*esi]			;// al has character of first array
+ 00000864  89 04 B2			mov [edx][type dword*esi],eax			;// copying to new array
+ 00000867  46				inc esi									;// loop index increment
+ 00000868  E2 EA			loop copyLoop							;// loop counter
+					RET
+ 0000086A  C9		   *	    leave  
+ 0000086B  C2 0008	   *	    ret    00008h
+ 0000086E			reset2Defaultcolor ENDP
+
+ 0000086E			checkwin PROC,DWString:dword,indexArray1:dword
+				LOCAL totalmove:dword
+				;//-------------------------------------------------------------------------
+				;// check if there is winner yet
+				;// receive dword string and indexArray
+				;// return eax =1 if x win, =2 if o win, =3 if tie, 4 if game not complete
+				;//-------------------------------------------------------------------------
+ 0000086E  55		   *	    push   ebp
+ 0000086F  8B EC	   *	    mov    ebp, esp
+ 00000871  83 C4 FC	   *	    add    esp, 0FFFFFFFCh
+ 00000874			.code
+ 00000874  8B 5D 08			mov ebx,DWString					;// string of double word
+ 00000877  8B 55 0C			mov edx,indexArray1					;// index storing string
+ 0000087A  B9 00000000			mov ecx,0							
+ 0000087F  89 4D FC			mov totalmove,ecx					;// totalmove clear
+ 00000882  B9 00000009			mov ecx,9							;// you count 9 char
+ 00000887			movecount:
+ 00000887  0F B6 74 11 FF		movzx esi,byte ptr [edx][ecx-1]				;//finding actual index in dword array
+ 0000088C  0F B6 04 B3			movzx eax,byte ptr [ebx][type dword*esi]	;// moving that char to eax
+ 00000890  83 F8 58			cmp eax,'X'									;// if it is x or o 
+ 00000893  0F 84 00000332		je incMovCount
+ 00000899  83 F8 4F			cmp eax,'O'					
+ 0000089C  0F 84 00000329		je incMovCount								;// go to increment total move
+ 000008A2			backtomovecount:								;// back to loop after increment if any
+ 000008A2  E2 E3			loop movecount								;// loop counter
+ 000008A4  8B 45 FC			mov eax, totalmove
+ 000008A7  83 F8 05			cmp eax,5									;// if below 5 no need to check the winner
+ 000008AA  0F 82 00000303		jb toearly
+					
+ 000008B0			wincheck1:
+					;// checking for 1,2,3
+ 000008B0  0F B6 3A			movzx edi,byte ptr [edx][0]					;//find the index for dword string
+ 000008B3  8A 04 BB			mov al, byte ptr[ebx][type dword*edi]		;// move that to al
+ 000008B6  0F B6 7A 01			movzx edi,byte ptr [edx][1]
+ 000008BA  8A 24 BB			mov ah, byte ptr[ebx][type dword*edi]		;// to ah
+ 000008BD  0F B6 7A 02			movzx edi,byte ptr [edx][2]
+ 000008C1  8A 0C BB			mov cl, byte ptr[ebx][type dword*edi]		;// to cl
+ 000008C4  3A C4			cmp al,ah									;// are they equal?
+ 000008C6  75 46			jne wincheck2								;// if not check another combination
+ 000008C8  3A E1			cmp ah,cl									;// are 2nd and 3rd equal
+ 000008CA  75 42			jne wincheck2								;// if not check another combination
+ 000008CC  3C 2D			cmp al,'-'
+ 000008CE  74 3E			je wincheck2
+ 000008D0  50				push eax 
+ 000008D1  51				push ecx
+					;// setting up the color on dword string if winner
+ 000008D2  0F B6 3A			movzx edi, byte ptr[edx][0]
+					invoke changeColor, DWString, edi, (black + (yellow * 16))
+ 000008D5  68 000000E0	   *	    push   +0000000E0h
+ 000008DA  57		   *	    push   edi
+ 000008DB  FF 75 08	   *	    push   dword  ptr ss:[ebp]+000000008h
+ 000008DE  E8 FFFFFE03	   *	    call   changeColor
+ 000008E3  0F B6 7A 01			movzx edi, byte ptr[edx][1]
+					invoke changeColor, DWString, edi, (black + (yellow * 16))
+ 000008E7  68 000000E0	   *	    push   +0000000E0h
+ 000008EC  57		   *	    push   edi
+ 000008ED  FF 75 08	   *	    push   dword  ptr ss:[ebp]+000000008h
+ 000008F0  E8 FFFFFDF1	   *	    call   changeColor
+ 000008F5  0F B6 7A 02			movzx edi, byte ptr[edx][2]
+					invoke changeColor, DWString, edi, (black + (yellow * 16))
+ 000008F9  68 000000E0	   *	    push   +0000000E0h
+ 000008FE  57		   *	    push   edi
+ 000008FF  FF 75 08	   *	    push   dword  ptr ss:[ebp]+000000008h
+ 00000902  E8 FFFFFDDF	   *	    call   changeColor
+ 00000907  59				pop ecx 
+ 00000908  58				pop eax
+ 00000909  E9 000002AC			jmp onewin
+ 0000090E			wincheck2:
+					;// checking for 4,5,6
+ 0000090E  0F B6 7A 03			movzx edi,byte ptr [edx][3]					;//find the index for dword string
+ 00000912  8A 04 BB			mov al, byte ptr[ebx][type dword*edi]		;// move that to al
+ 00000915  0F B6 7A 04			movzx edi,byte ptr [edx][4]
+ 00000919  8A 24 BB			mov ah, byte ptr[ebx][type dword*edi]		;// to ah
+ 0000091C  0F B6 7A 05			movzx edi,byte ptr [edx][5]
+ 00000920  8A 0C BB			mov cl, byte ptr[ebx][type dword*edi]		;// to cl
+ 00000923  3A C4			cmp al,ah									;// are they equal?
+ 00000925  75 47			jne wincheck3								;// if not check another combination
+ 00000927  3A E1			cmp ah,cl									;// are 2nd and 3rd equal
+ 00000929  75 43			jne wincheck3
+ 0000092B  3C 2D			cmp al,'-'
+ 0000092D  74 3F			je wincheck3
+ 0000092F  50				push eax 
+ 00000930  51				push ecx
+					;// if not check another combination
+					;// setting up the color on dword string if winner
+ 00000931  0F B6 7A 03			movzx edi, byte ptr[edx][3]
+					invoke changeColor, DWString, edi, (black + (yellow * 16))
+ 00000935  68 000000E0	   *	    push   +0000000E0h
+ 0000093A  57		   *	    push   edi
+ 0000093B  FF 75 08	   *	    push   dword  ptr ss:[ebp]+000000008h
+ 0000093E  E8 FFFFFDA3	   *	    call   changeColor
+ 00000943  0F B6 7A 04			movzx edi, byte ptr[edx][4]
+					invoke changeColor, DWString, edi, (black + (yellow * 16))
+ 00000947  68 000000E0	   *	    push   +0000000E0h
+ 0000094C  57		   *	    push   edi
+ 0000094D  FF 75 08	   *	    push   dword  ptr ss:[ebp]+000000008h
+ 00000950  E8 FFFFFD91	   *	    call   changeColor
+ 00000955  0F B6 7A 05			movzx edi, byte ptr[edx][5]
+					invoke changeColor, DWString, edi, (black + (yellow * 16))
+ 00000959  68 000000E0	   *	    push   +0000000E0h
+ 0000095E  57		   *	    push   edi
+ 0000095F  FF 75 08	   *	    push   dword  ptr ss:[ebp]+000000008h
+ 00000962  E8 FFFFFD7F	   *	    call   changeColor
+ 00000967  59				pop ecx 
+ 00000968  58				pop eax
+ 00000969  E9 0000024C			jmp onewin
+					;// checking for 7,8,9
+ 0000096E			wincheck3:	
+ 0000096E  0F B6 7A 06			movzx edi,byte ptr [edx][6]					;//find the index for dword string
+ 00000972  8A 04 BB			mov al, byte ptr[ebx][type dword*edi]		;// move that to al
+ 00000975  0F B6 7A 07			movzx edi,byte ptr [edx][7]
+ 00000979  8A 24 BB			mov ah, byte ptr[ebx][type dword*edi]		;// to ah
+ 0000097C  0F B6 7A 08			movzx edi,byte ptr [edx][8]
+ 00000980  8A 0C BB			mov cl, byte ptr[ebx][type dword*edi]		;// to cl
+ 00000983  3A C4			cmp al,ah									;// are they equal?
+ 00000985  75 47			jne wincheck4								;// if not check another combination
+ 00000987  3A E1			cmp ah,cl									;// are 2nd and 3rd equal
+ 00000989  75 43			jne wincheck4								;// if not check another combination
+ 0000098B  3C 2D			cmp al,'-'
+ 0000098D  74 3F			je wincheck4
+ 0000098F  50				push eax 
+ 00000990  51				push ecx
+					;// setting up the color on dword string if winner
+ 00000991  0F B6 7A 06			movzx edi, byte ptr[edx][6]
+					invoke changeColor, DWString, edi, (black + (yellow * 16))
+ 00000995  68 000000E0	   *	    push   +0000000E0h
+ 0000099A  57		   *	    push   edi
+ 0000099B  FF 75 08	   *	    push   dword  ptr ss:[ebp]+000000008h
+ 0000099E  E8 FFFFFD43	   *	    call   changeColor
+ 000009A3  0F B6 7A 07			movzx edi, byte ptr[edx][7]
+					invoke changeColor, DWString, edi, (black + (yellow * 16))
+ 000009A7  68 000000E0	   *	    push   +0000000E0h
+ 000009AC  57		   *	    push   edi
+ 000009AD  FF 75 08	   *	    push   dword  ptr ss:[ebp]+000000008h
+ 000009B0  E8 FFFFFD31	   *	    call   changeColor
+ 000009B5  0F B6 7A 08			movzx edi, byte ptr[edx][8]
+					invoke changeColor, DWString, edi, (black + (yellow * 16))
+ 000009B9  68 000000E0	   *	    push   +0000000E0h
+ 000009BE  57		   *	    push   edi
+ 000009BF  FF 75 08	   *	    push   dword  ptr ss:[ebp]+000000008h
+ 000009C2  E8 FFFFFD1F	   *	    call   changeColor
+ 000009C7  59				pop ecx 
+ 000009C8  58				pop eax
+ 000009C9  E9 000001EC			jmp onewin
+					;// checking for 1,4,7
+ 000009CE			wincheck4:
+ 000009CE  0F B6 3A			movzx edi,byte ptr [edx][0]					;//find the index for dword string
+ 000009D1  8A 04 BB			mov al, byte ptr[ebx][type dword*edi]		;// move that to al
+ 000009D4  0F B6 7A 03			movzx edi,byte ptr [edx][3]
+ 000009D8  8A 24 BB			mov ah, byte ptr[ebx][type dword*edi]		;// to ah
+ 000009DB  0F B6 7A 06			movzx edi,byte ptr [edx][6]
+ 000009DF  8A 0C BB			mov cl, byte ptr[ebx][type dword*edi]		;// to cl
+ 000009E2  3A C4			cmp al,ah									;// are they equal?
+ 000009E4  75 46			jne wincheck5								;// if not check another combination
+ 000009E6  3A E1			cmp ah,cl									;// are 2nd and 3rd equal
+ 000009E8  75 42			jne wincheck5								;// if not check another combination
+ 000009EA  3C 2D			cmp al,'-'
+ 000009EC  74 3E			je wincheck5
+ 000009EE  50				push eax 
+ 000009EF  51				push ecx
+					;// setting up the color on dword string if winner
+ 000009F0  0F B6 3A			movzx edi, byte ptr[edx][0]
+					invoke changeColor, DWString, edi, (black + (yellow * 16))
+ 000009F3  68 000000E0	   *	    push   +0000000E0h
+ 000009F8  57		   *	    push   edi
+ 000009F9  FF 75 08	   *	    push   dword  ptr ss:[ebp]+000000008h
+ 000009FC  E8 FFFFFCE5	   *	    call   changeColor
+ 00000A01  0F B6 7A 03			movzx edi, byte ptr[edx][3]
+					invoke changeColor, DWString, edi, (black + (yellow * 16))
+ 00000A05  68 000000E0	   *	    push   +0000000E0h
+ 00000A0A  57		   *	    push   edi
+ 00000A0B  FF 75 08	   *	    push   dword  ptr ss:[ebp]+000000008h
+ 00000A0E  E8 FFFFFCD3	   *	    call   changeColor
+ 00000A13  0F B6 7A 06			movzx edi, byte ptr[edx][6]
+					invoke changeColor, DWString, edi, (black + (yellow * 16))
+ 00000A17  68 000000E0	   *	    push   +0000000E0h
+ 00000A1C  57		   *	    push   edi
+ 00000A1D  FF 75 08	   *	    push   dword  ptr ss:[ebp]+000000008h
+ 00000A20  E8 FFFFFCC1	   *	    call   changeColor
+ 00000A25  59				pop ecx 
+ 00000A26  58				pop eax
+ 00000A27  E9 0000018E			jmp onewin
+					;// checking for 2,5,8
+ 00000A2C			wincheck5:
+ 00000A2C  0F B6 7A 01			movzx edi,byte ptr [edx][1]					;//find the index for dword string
+ 00000A30  8A 04 BB			mov al, byte ptr[ebx][type dword*edi]		;// move that to al
+ 00000A33  0F B6 7A 04			movzx edi,byte ptr [edx][4]
+ 00000A37  8A 24 BB			mov ah, byte ptr[ebx][type dword*edi]		;// to ah
+ 00000A3A  0F B6 7A 07			movzx edi,byte ptr [edx][7]
+ 00000A3E  8A 0C BB			mov cl, byte ptr[ebx][type dword*edi]		;// to cl
+ 00000A41  3A C4			cmp al,ah									;// are they equal?
+ 00000A43  75 47			jne wincheck6								;// if not check another combination
+ 00000A45  3A E1			cmp ah,cl									;// are 2nd and 3rd equal
+ 00000A47  75 43			jne wincheck6								;// if not check another combination
+ 00000A49  3C 2D			cmp al,'-'
+ 00000A4B  74 3F			je wincheck6
+ 00000A4D  50				push eax 
+ 00000A4E  51				push ecx
+					;// setting up the color on dword string if winner
+ 00000A4F  0F B6 7A 01			movzx edi, byte ptr[edx][1]
+					invoke changeColor, DWString, edi, (black + (yellow * 16))
+ 00000A53  68 000000E0	   *	    push   +0000000E0h
+ 00000A58  57		   *	    push   edi
+ 00000A59  FF 75 08	   *	    push   dword  ptr ss:[ebp]+000000008h
+ 00000A5C  E8 FFFFFC85	   *	    call   changeColor
+ 00000A61  0F B6 7A 04			movzx edi, byte ptr[edx][4]
+					invoke changeColor, DWString, edi, (black + (yellow * 16))
+ 00000A65  68 000000E0	   *	    push   +0000000E0h
+ 00000A6A  57		   *	    push   edi
+ 00000A6B  FF 75 08	   *	    push   dword  ptr ss:[ebp]+000000008h
+ 00000A6E  E8 FFFFFC73	   *	    call   changeColor
+ 00000A73  0F B6 7A 07			movzx edi, byte ptr[edx][7]
+					invoke changeColor, DWString, edi, (black + (yellow * 16))
+ 00000A77  68 000000E0	   *	    push   +0000000E0h
+ 00000A7C  57		   *	    push   edi
+ 00000A7D  FF 75 08	   *	    push   dword  ptr ss:[ebp]+000000008h
+ 00000A80  E8 FFFFFC61	   *	    call   changeColor
+ 00000A85  59				pop ecx 
+ 00000A86  58				pop eax
+ 00000A87  E9 0000012E			jmp onewin
+					;// checking for 3,6,9
+ 00000A8C			wincheck6:
+ 00000A8C  0F B6 7A 02			movzx edi,byte ptr [edx][2]					;//find the index for dword string
+ 00000A90  8A 04 BB			mov al, byte ptr[ebx][type dword*edi]		;// move that to al
+ 00000A93  0F B6 7A 05			movzx edi,byte ptr [edx][5]
+ 00000A97  8A 24 BB			mov ah, byte ptr[ebx][type dword*edi]		;// to ah
+ 00000A9A  0F B6 7A 08			movzx edi,byte ptr [edx][8]
+ 00000A9E  8A 0C BB			mov cl, byte ptr[ebx][type dword*edi]		;// to cl
+ 00000AA1  3A C4			cmp al,ah									;// are they equal?
+ 00000AA3  75 47			jne wincheck7								;// if not check another combination
+ 00000AA5  3A E1			cmp ah,cl									;// are 2nd and 3rd equal
+ 00000AA7  75 43			jne wincheck7								;// if not check another combination
+ 00000AA9  3C 2D			cmp al,'-'
+ 00000AAB  74 3F			je wincheck7
+ 00000AAD  50				push eax 
+ 00000AAE  51				push ecx
+					;// setting up the color on dword string if winner
+ 00000AAF  0F B6 7A 02			movzx edi, byte ptr[edx][2]
+					invoke changeColor, DWString, edi, (black + (yellow * 16))
+ 00000AB3  68 000000E0	   *	    push   +0000000E0h
+ 00000AB8  57		   *	    push   edi
+ 00000AB9  FF 75 08	   *	    push   dword  ptr ss:[ebp]+000000008h
+ 00000ABC  E8 FFFFFC25	   *	    call   changeColor
+ 00000AC1  0F B6 7A 05			movzx edi, byte ptr[edx][5]
+					invoke changeColor, DWString, edi, (black + (yellow * 16))
+ 00000AC5  68 000000E0	   *	    push   +0000000E0h
+ 00000ACA  57		   *	    push   edi
+ 00000ACB  FF 75 08	   *	    push   dword  ptr ss:[ebp]+000000008h
+ 00000ACE  E8 FFFFFC13	   *	    call   changeColor
+ 00000AD3  0F B6 7A 08			movzx edi, byte ptr[edx][8]
+					invoke changeColor, DWString, edi, (black + (yellow * 16))
+ 00000AD7  68 000000E0	   *	    push   +0000000E0h
+ 00000ADC  57		   *	    push   edi
+ 00000ADD  FF 75 08	   *	    push   dword  ptr ss:[ebp]+000000008h
+ 00000AE0  E8 FFFFFC01	   *	    call   changeColor
+ 00000AE5  59				pop ecx 
+ 00000AE6  58				pop eax
+ 00000AE7  E9 000000CE			jmp onewin
+					;// checking for 1,5,9
+ 00000AEC			wincheck7:
+ 00000AEC  0F B6 3A			movzx edi,byte ptr [edx][0]					;//find the index for dword string
+ 00000AEF  8A 04 BB			mov al, byte ptr[ebx][type dword*edi]		;// move that to al
+ 00000AF2  0F B6 7A 04			movzx edi,byte ptr [edx][4]
+ 00000AF6  8A 24 BB			mov ah, byte ptr[ebx][type dword*edi]		;// to ah
+ 00000AF9  0F B6 7A 08			movzx edi,byte ptr [edx][8]
+ 00000AFD  8A 0C BB			mov cl, byte ptr[ebx][type dword*edi]		;// to cl
+ 00000B00  3A C4			cmp al,ah									;// are they equal?
+ 00000B02  75 43			jne wincheck8								;// if not check another combination
+ 00000B04  3A E1			cmp ah,cl									;// are 2nd and 3rd equal
+ 00000B06  75 3F			jne wincheck8								;// if not check another combination
+ 00000B08  3C 2D			cmp al,'-'
+ 00000B0A  74 3B			je wincheck8
+ 00000B0C  50				push eax 
+ 00000B0D  51				push ecx
+					;// setting up the color on dword string if winner
+ 00000B0E  0F B6 3A			movzx edi, byte ptr[edx][0]
+					invoke changeColor, DWString, edi, (black + (yellow * 16))
+ 00000B11  68 000000E0	   *	    push   +0000000E0h
+ 00000B16  57		   *	    push   edi
+ 00000B17  FF 75 08	   *	    push   dword  ptr ss:[ebp]+000000008h
+ 00000B1A  E8 FFFFFBC7	   *	    call   changeColor
+ 00000B1F  0F B6 7A 04			movzx edi, byte ptr[edx][4]
+					invoke changeColor, DWString, edi, (black + (yellow * 16))
+ 00000B23  68 000000E0	   *	    push   +0000000E0h
+ 00000B28  57		   *	    push   edi
+ 00000B29  FF 75 08	   *	    push   dword  ptr ss:[ebp]+000000008h
+ 00000B2C  E8 FFFFFBB5	   *	    call   changeColor
+ 00000B31  0F B6 7A 08			movzx edi, byte ptr[edx][8]
+					invoke changeColor, DWString, edi, (black + (yellow * 16))
+ 00000B35  68 000000E0	   *	    push   +0000000E0h
+ 00000B3A  57		   *	    push   edi
+ 00000B3B  FF 75 08	   *	    push   dword  ptr ss:[ebp]+000000008h
+ 00000B3E  E8 FFFFFBA3	   *	    call   changeColor
+ 00000B43  59				pop ecx 
+ 00000B44  58				pop eax
+ 00000B45  EB 73			jmp onewin
+					;// checking for 3,5,7
+ 00000B47			wincheck8:
+ 00000B47  0F B6 7A 02			movzx edi,byte ptr [edx][2]					;//find the index for dword string
+ 00000B4B  8A 04 BB			mov al, byte ptr[ebx][type dword*edi]		;// move that to al
+ 00000B4E  0F B6 7A 04			movzx edi,byte ptr [edx][4]
+ 00000B52  8A 24 BB			mov ah, byte ptr[ebx][type dword*edi]		;// to ah
+ 00000B55  0F B6 7A 06			movzx edi,byte ptr [edx][6]
+ 00000B59  8A 0C BB			mov cl, byte ptr[ebx][type dword*edi]		;// to cl
+ 00000B5C  3A C4			cmp al,ah									;// are they equal?
+ 00000B5E  75 44			jne nooneiswinner								;// if not check another combination
+ 00000B60  3A E1			cmp ah,cl									;// are 2nd and 3rd equal
+ 00000B62  75 40			jne nooneiswinner							;// if not check another combination
+ 00000B64  3C 2D			cmp al,'-'
+ 00000B66  74 3C			je nooneiswinner
+ 00000B68  50				push eax 
+ 00000B69  51				push ecx
+					;// setting up the color on dword string if winner
+ 00000B6A  0F B6 7A 02			movzx edi, byte ptr[edx][2]
+					invoke changeColor, DWString, edi, (black + (yellow * 16))
+ 00000B6E  68 000000E0	   *	    push   +0000000E0h
+ 00000B73  57		   *	    push   edi
+ 00000B74  FF 75 08	   *	    push   dword  ptr ss:[ebp]+000000008h
+ 00000B77  E8 FFFFFB6A	   *	    call   changeColor
+ 00000B7C  0F B6 7A 04			movzx edi, byte ptr[edx][4]
+					invoke changeColor, DWString, edi, (black + (yellow * 16))
+ 00000B80  68 000000E0	   *	    push   +0000000E0h
+ 00000B85  57		   *	    push   edi
+ 00000B86  FF 75 08	   *	    push   dword  ptr ss:[ebp]+000000008h
+ 00000B89  E8 FFFFFB58	   *	    call   changeColor
+ 00000B8E  0F B6 7A 06			movzx edi, byte ptr[edx][6]
+					invoke changeColor, DWString, edi, (black + (yellow * 16))
+ 00000B92  68 000000E0	   *	    push   +0000000E0h
+ 00000B97  57		   *	    push   edi
+ 00000B98  FF 75 08	   *	    push   dword  ptr ss:[ebp]+000000008h
+ 00000B9B  E8 FFFFFB46	   *	    call   changeColor
+ 00000BA0  59				pop ecx 
+ 00000BA1  58				pop eax
+ 00000BA2  EB 16			jmp onewin
+ 00000BA4			nooneiswinner:
+ 00000BA4  8B 45 FC			mov eax,totalmove							;// check if grid is full
+ 00000BA7  83 F8 09			cmp eax,9									;// comparing
+ 00000BAA  72 07			jb toearly									;// if count is less than 9 its toearly
+ 00000BAC  B8 00000003			mov eax,3									;// else its a tie without winner
+ 00000BB1  EB 14			jmp done
+ 00000BB3			toearly:
+ 00000BB3  B8 00000004			mov eax,4									;// 4 is incomplete game
+ 00000BB8  EB 0D			jmp done									;// repeat
+ 00000BBA			onewin:
+ 00000BBA  3C 58			cmp al,'X'									;// if x winner
+ 00000BBC  74 15			je xwin										;// return 1
+ 00000BBE  3C 4F			cmp al,'O'
+ 00000BC0  75 E2			jne nooneiswinner
+ 00000BC2  B8 00000002			mov eax,2									;// else return 2
+ 00000BC7			done:
+					RET
+ 00000BC7  C9		   *	    leave  
+ 00000BC8  C2 0008	   *	    ret    00008h
+ 00000BCB			incMovCount:
+ 00000BCB  FF 45 FC			inc totalmove
+ 00000BCE  E9 FFFFFCCF			jmp backtomovecount
+ 00000BD3			xwin:
+ 00000BD3  B8 00000001			mov eax,1
+ 00000BD8  EB ED			jmp done
+ 00000BDA			checkwin ENDP
+				END main
+Microsoft (R) Macro Assembler Version 14.00.23506.0	    12/17/16 11:39:16
+
+final exa						     Symbols 2 - 1
+
+
+
+
+Structures and Unions:
+
+                N a m e                  Size
+                                         Offset      Type
+
+CONSOLE_CURSOR_INFO  . . . . . .	 00000008
+  dwSize . . . . . . . . . . . .	 00000000	 DWord
+  bVisible . . . . . . . . . . .	 00000004	 DWord
+CONSOLE_SCREEN_BUFFER_INFO . . .	 00000016
+  dwSize . . . . . . . . . . . .	 00000000	 DWord
+  dwCursorPosition . . . . . . .	 00000004	 DWord
+  wAttributes  . . . . . . . . .	 00000008	 Word
+  srWindow . . . . . . . . . . .	 0000000A	 QWord
+  dwMaximumWindowSize  . . . . .	 00000012	 DWord
+COORD  . . . . . . . . . . . . .	 00000004
+  X  . . . . . . . . . . . . . .	 00000000	 Word
+  Y  . . . . . . . . . . . . . .	 00000002	 Word
+FILETIME . . . . . . . . . . . .	 00000008
+  loDateTime . . . . . . . . . .	 00000000	 DWord
+  hiDateTime . . . . . . . . . .	 00000004	 DWord
+FOCUS_EVENT_RECORD . . . . . . .	 00000004
+  bSetFocus  . . . . . . . . . .	 00000000	 DWord
+FPU_ENVIRON  . . . . . . . . . .	 0000001C
+  controlWord  . . . . . . . . .	 00000000	 Word
+  statusWord . . . . . . . . . .	 00000004	 Word
+  tagWord  . . . . . . . . . . .	 00000008	 Word
+  instrPointerOffset . . . . . .	 0000000C	 DWord
+  instrPointerSelector . . . . .	 00000010	 DWord
+  operandPointerOffset . . . . .	 00000014	 DWord
+  operandPointerSelector . . . .	 00000018	 Word
+INPUT_RECORD . . . . . . . . . .	 00000014
+  EventType  . . . . . . . . . .	 00000000	 Word
+  Event  . . . . . . . . . . . .	 00000004	 XmmWord
+  bKeyDown . . . . . . . . . . .	 00000000	 DWord
+  wRepeatCount . . . . . . . . .	 00000004	 Word
+  wVirtualKeyCode  . . . . . . .	 00000006	 Word
+  wVirtualScanCode . . . . . . .	 00000008	 Word
+  uChar  . . . . . . . . . . . .	 0000000A	 Word
+  UnicodeChar  . . . . . . . . .	 00000000	 Word
+  AsciiChar  . . . . . . . . . .	 00000000	 Byte
+  dwControlKeyState  . . . . . .	 0000000C	 DWord
+  dwMousePosition  . . . . . . .	 00000000	 DWord
+  dwButtonState  . . . . . . . .	 00000004	 DWord
+  dwMouseControlKeyState . . . .	 00000008	 DWord
+  dwEventFlags . . . . . . . . .	 0000000C	 DWord
+  dwSize . . . . . . . . . . . .	 00000000	 DWord
+  dwCommandId  . . . . . . . . .	 00000000	 DWord
+  bSetFocus  . . . . . . . . . .	 00000000	 DWord
+KEY_EVENT_RECORD . . . . . . . .	 00000010
+  bKeyDown . . . . . . . . . . .	 00000000	 DWord
+  wRepeatCount . . . . . . . . .	 00000004	 Word
+  wVirtualKeyCode  . . . . . . .	 00000006	 Word
+  wVirtualScanCode . . . . . . .	 00000008	 Word
+  uChar  . . . . . . . . . . . .	 0000000A	 Word
+  UnicodeChar  . . . . . . . . .	 00000000	 Word
+  AsciiChar  . . . . . . . . . .	 00000000	 Byte
+  dwControlKeyState  . . . . . .	 0000000C	 DWord
+MENU_EVENT_RECORD  . . . . . . .	 00000004
+  dwCommandId  . . . . . . . . .	 00000000	 DWord
+MOUSE_EVENT_RECORD . . . . . . .	 00000010
+  dwMousePosition  . . . . . . .	 00000000	 DWord
+  dwButtonState  . . . . . . . .	 00000004	 DWord
+  dwMouseControlKeyState . . . .	 00000008	 DWord
+  dwEventFlags . . . . . . . . .	 0000000C	 DWord
+SMALL_RECT . . . . . . . . . . .	 00000008
+  Left . . . . . . . . . . . . .	 00000000	 Word
+  Top  . . . . . . . . . . . . .	 00000002	 Word
+  Right  . . . . . . . . . . . .	 00000004	 Word
+  Bottom . . . . . . . . . . . .	 00000006	 Word
+SYSTEMTIME . . . . . . . . . . .	 00000010
+  wYear  . . . . . . . . . . . .	 00000000	 Word
+  wMonth . . . . . . . . . . . .	 00000002	 Word
+  wDayOfWeek . . . . . . . . . .	 00000004	 Word
+  wDay . . . . . . . . . . . . .	 00000006	 Word
+  wHour  . . . . . . . . . . . .	 00000008	 Word
+  wMinute  . . . . . . . . . . .	 0000000A	 Word
+  wSecond  . . . . . . . . . . .	 0000000C	 Word
+  wMilliseconds  . . . . . . . .	 0000000E	 Word
+WINDOW_BUFFER_SIZE_RECORD  . . .	 00000004
+  dwSize . . . . . . . . . . . .	 00000000	 DWord
+
+
+Segments and Groups:
+
+                N a m e                 Size     Length   Align   Combine Class
+
+FLAT . . . . . . . . . . . . . .	GROUP
+STACK  . . . . . . . . . . . . .	32 Bit	 00001000 Para	  Stack	  'STACK'	 
+_DATA  . . . . . . . . . . . . .	32 Bit	 0000033D Para	  Public  'DATA'	
+_TEXT  . . . . . . . . . . . . .	32 Bit	 00000BDA Para	  Public  'CODE'	
+
+
+Procedures, parameters, and locals:
+
+                N a m e                 Type     Value    Attr
+
+BtoDW  . . . . . . . . . . . . .	P Near	 0000068E _TEXT	Length= 00000030 Public STDCALL
+  source . . . . . . . . . . . .	DWord	 bp + 00000008
+  dest . . . . . . . . . . . . .	DWord	 bp + 0000000C
+  copyLoop . . . . . . . . . . .	L Near	 000006A4 _TEXT	
+CloseFile  . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+CloseHandle  . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+Clrscr . . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+CreateFileA  . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+CreateOutputFile . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+Crlf . . . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+Delay  . . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+DumpMem  . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+DumpRegs . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+ExitProcess  . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+FileTimeToDosDateTime  . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+FileTimeToSystemTime . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+FlushConsoleInputBuffer  . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+FormatMessageA . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+GetCommandLineA  . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+GetCommandTail . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+GetConsoleCP . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+GetConsoleCursorInfo . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+GetConsoleMode . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+GetConsoleScreenBufferInfo . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+GetDateTime  . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+GetFileTime  . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+GetKeyState  . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+GetLastError . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+GetLocalTime . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+GetMaxXY . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+GetMseconds  . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+GetNumberOfConsoleInputEvents  .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+GetProcessHeap . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+GetStdHandle . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+GetSystemTime  . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+GetTextColor . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+GetTickCount . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+Gotoxy . . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+HeapAlloc  . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+HeapCreate . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+HeapDestroy  . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+HeapFree . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+HeapSize . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+IsDigit  . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+LocalFree  . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+MessageBoxA  . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+MsgBoxAsk  . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+MsgBox . . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+OpenInputFile  . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+ParseDecimal32 . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+ParseInteger32 . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+PeekConsoleInputA  . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+PrintBoard . . . . . . . . . . .	P Near	 000006BE _TEXT	Length= 00000028 Public STDCALL
+  DWString . . . . . . . . . . .	DWord	 bp + 00000008
+  stringL  . . . . . . . . . . .	DWord	 bp + 0000000C
+  printLoop  . . . . . . . . . .	L Near	 000006CC _TEXT	
+Random32 . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+RandomRange  . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+Randomize  . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+ReadChar . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+ReadConsoleA . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+ReadConsoleInputA  . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+ReadDec  . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+ReadFile . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+ReadFloat  . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+ReadFromFile . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+ReadHex  . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+ReadInt  . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+ReadKeyFlush . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+ReadKey  . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+ReadString . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+SetConsoleCursorInfo . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+SetConsoleCursorPosition . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+SetConsoleMode . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+SetConsoleScreenBufferSize . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+SetConsoleTextAttribute  . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+SetConsoleTitleA . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+SetConsoleWindowInfo . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+SetFilePointer . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+SetLocalTime . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+SetTextColor . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+ShowFPUStack . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+Sleep  . . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+StrLength  . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+Str_compare  . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+Str_copy . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+Str_length . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+Str_trim . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+Str_ucase  . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+SystemTimeToFileTime . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+WaitMsg  . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+WriteBinB  . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+WriteBin . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+WriteChar  . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+WriteConsoleA  . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+WriteConsoleOutputAttribute  . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+WriteConsoleOutputCharacterA . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+WriteDec . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+WriteFile  . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+WriteFloat . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+WriteHexB  . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+WriteHex . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+WriteInt . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+WriteStackFrameName  . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+WriteStackFrame  . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+WriteString  . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+WriteToFile  . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+WriteWindowsMsg  . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+changeColor  . . . . . . . . . .	P Near	 000006E6 _TEXT	Length= 00000022 Public STDCALL
+  DWString . . . . . . . . . . .	DWord	 bp + 00000008
+  index  . . . . . . . . . . . .	DWord	 bp + 0000000C
+  colorcode  . . . . . . . . . .	DWord	 bp + 00000010
+  colorLoop  . . . . . . . . . .	L Near	 000006F5 _TEXT	
+checkwin . . . . . . . . . . . .	P Near	 0000086E _TEXT	Length= 0000036C Public STDCALL
+  DWString . . . . . . . . . . .	DWord	 bp + 00000008
+  indexArray1  . . . . . . . . .	DWord	 bp + 0000000C
+  totalmove  . . . . . . . . . .	DWord	 bp - 00000004
+  movecount  . . . . . . . . . .	L Near	 00000887 _TEXT	
+  backtomovecount  . . . . . . .	L Near	 000008A2 _TEXT	
+  wincheck1  . . . . . . . . . .	L Near	 000008B0 _TEXT	
+  wincheck2  . . . . . . . . . .	L Near	 0000090E _TEXT	
+  wincheck3  . . . . . . . . . .	L Near	 0000096E _TEXT	
+  wincheck4  . . . . . . . . . .	L Near	 000009CE _TEXT	
+  wincheck5  . . . . . . . . . .	L Near	 00000A2C _TEXT	
+  wincheck6  . . . . . . . . . .	L Near	 00000A8C _TEXT	
+  wincheck7  . . . . . . . . . .	L Near	 00000AEC _TEXT	
+  wincheck8  . . . . . . . . . .	L Near	 00000B47 _TEXT	
+  nooneiswinner  . . . . . . . .	L Near	 00000BA4 _TEXT	
+  toearly  . . . . . . . . . . .	L Near	 00000BB3 _TEXT	
+  onewin . . . . . . . . . . . .	L Near	 00000BBA _TEXT	
+  done . . . . . . . . . . . . .	L Near	 00000BC7 _TEXT	
+  incMovCount  . . . . . . . . .	L Near	 00000BCB _TEXT	
+  xwin . . . . . . . . . . . . .	L Near	 00000BD3 _TEXT	
+cm_oMove . . . . . . . . . . . .	P Near	 000007AD _TEXT	Length= 00000047 Public STDCALL
+  DWString . . . . . . . . . . .	DWord	 bp + 00000008
+  indexArray1  . . . . . . . . .	DWord	 bp + 0000000C
+  random . . . . . . . . . . . .	L Near	 000007B7 _TEXT	
+  norandom . . . . . . . . . . .	L Near	 000007C7 _TEXT	
+cm_xMove . . . . . . . . . . . .	P Near	 000007F4 _TEXT	Length= 0000004A Public STDCALL
+  DWString . . . . . . . . . . .	DWord	 bp + 00000008
+  indexArray1  . . . . . . . . .	DWord	 bp + 0000000C
+  random . . . . . . . . . . . .	L Near	 000007FE _TEXT	
+  norandom . . . . . . . . . . .	L Near	 0000080E _TEXT	
+main . . . . . . . . . . . . . .	P Near	 00000000 _TEXT	Length= 0000068E Public STDCALL
+  top  . . . . . . . . . . . . .	L Near	 0000000F _TEXT	
+  backfromerror  . . . . . . . .	L Near	 0000002D _TEXT	
+  UserVsComp . . . . . . . . . .	L Near	 00000055 _TEXT	
+  compPlay1UVC . . . . . . . . .	L Near	 00000073 _TEXT	
+  userPlay2UVC . . . . . . . . .	L Near	 0000010B _TEXT	
+  userPlay1UVC . . . . . . . . .	L Near	 0000019D _TEXT	
+  compPlay2UVC . . . . . . . . .	L Near	 0000022B _TEXT	
+  CompVsComp . . . . . . . . . .	L Near	 000002C7 _TEXT	
+  comp1Play1CVC  . . . . . . . .	L Near	 000002E5 _TEXT	
+  comp2Play2CVC  . . . . . . . .	L Near	 0000037D _TEXT	
+  comp2Play1CVC  . . . . . . . .	L Near	 00000419 _TEXT	
+  comp1Play2CVC  . . . . . . . .	L Near	 000004B1 _TEXT	
+  tie  . . . . . . . . . . . . .	L Near	 00000546 _TEXT	
+  gamefinish . . . . . . . . . .	L Near	 0000056B _TEXT	
+  displayStat  . . . . . . . . .	L Near	 0000059D _TEXT	
+  exits  . . . . . . . . . . . .	L Near	 00000612 _TEXT	
+oMove  . . . . . . . . . . . . .	P Near	 0000075C _TEXT	Length= 00000051 Public STDCALL
+  DWString . . . . . . . . . . .	DWord	 bp + 00000008
+  indexArray1  . . . . . . . . .	DWord	 bp + 0000000C
+  entrypromt1  . . . . . . . . .	DWord	 bp + 00000010
+  errorpromt1  . . . . . . . . .	DWord	 bp + 00000014
+  backtoentry  . . . . . . . . .	L Near	 00000767 _TEXT	
+  wrongEntry . . . . . . . . . .	L Near	 000007A3 _TEXT	
+printf . . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External C
+reset2DefaultColor . . . . . . .	P Near	 0000083E _TEXT	Length= 00000030 Public STDCALL
+  source . . . . . . . . . . . .	DWord	 bp + 00000008
+  dest . . . . . . . . . . . . .	DWord	 bp + 0000000C
+  copyLoop . . . . . . . . . . .	L Near	 00000854 _TEXT	
+scanf  . . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External C
+wsprintfA  . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External C
+xMove  . . . . . . . . . . . . .	P Near	 00000708 _TEXT	Length= 00000054 Public STDCALL
+  DWString . . . . . . . . . . .	DWord	 bp + 00000008
+  indexArray1  . . . . . . . . .	DWord	 bp + 0000000C
+  entrypromt1  . . . . . . . . .	DWord	 bp + 00000010
+  errorpromt1  . . . . . . . . .	DWord	 bp + 00000014
+  backtoentry  . . . . . . . . .	L Near	 00000713 _TEXT	
+  wrongEntry . . . . . . . . . .	L Near	 00000752 _TEXT	
+
+
+Symbols:
+
+                N a m e                 Type     Value    Attr
+
+@CodeSize  . . . . . . . . . . .	Number	 00000000h   
+@DataSize  . . . . . . . . . . .	Number	 00000000h   
+@Interface . . . . . . . . . . .	Number	 00000003h   
+@Model . . . . . . . . . . . . .	Number	 00000007h   
+@code  . . . . . . . . . . . . .	Text   	 _TEXT
+@data  . . . . . . . . . . . . .	Text   	 FLAT
+@fardata?  . . . . . . . . . . .	Text   	 FLAT
+@fardata . . . . . . . . . . . .	Text   	 FLAT
+@stack . . . . . . . . . . . . .	Text   	 FLAT
+ALT_MASK . . . . . . . . . . . .	Number	 00000003h   
+CAPSLOCK_ON  . . . . . . . . . .	Number	 00000080h   
+CREATE_ALWAYS  . . . . . . . . .	Number	 00000002h   
+CREATE_NEW . . . . . . . . . . .	Number	 00000001h   
+CTRL_MASK  . . . . . . . . . . .	Number	 0000000Ch   
+CreateFile . . . . . . . . . . .	Text   	 CreateFileA
+DO_NOT_SHARE . . . . . . . . . .	Number	 00000000h   
+DWGameBoard  . . . . . . . . . .	DWord	 000000D6 _DATA	
+ENABLE_ECHO_INPUT  . . . . . . .	Number	 00000004h   
+ENABLE_LINE_INPUT  . . . . . . .	Number	 00000002h   
+ENABLE_MOUSE_INPUT . . . . . . .	Number	 00000010h   
+ENABLE_PROCESSED_INPUT . . . . .	Number	 00000001h   
+ENABLE_PROCESSED_OUTPUT  . . . .	Number	 00000001h   
+ENABLE_WINDOW_INPUT  . . . . . .	Number	 00000008h   
+ENABLE_WRAP_AT_EOL_OUTPUT  . . .	Number	 00000002h   
+ENHANCED_KEY . . . . . . . . . .	Number	 00000100h   
+FALSE  . . . . . . . . . . . . .	Number	 00000000h   
+FILE_APPEND_DATA . . . . . . . .	Number	 00000004h   
+FILE_ATTRIBUTE_ARCHIVE . . . . .	Number	 00000020h   
+FILE_ATTRIBUTE_COMPRESSED  . . .	Number	 00000800h   
+FILE_ATTRIBUTE_DEVICE  . . . . .	Number	 00000040h   
+FILE_ATTRIBUTE_DIRECTORY . . . .	Number	 00000010h   
+FILE_ATTRIBUTE_ENCRYPTED . . . .	Number	 00004000h   
+FILE_ATTRIBUTE_HIDDEN  . . . . .	Number	 00000002h   
+FILE_ATTRIBUTE_NORMAL  . . . . .	Number	 00000080h   
+FILE_ATTRIBUTE_NOT_CONTENT_INDEXED .	Number	 00002000h   
+FILE_ATTRIBUTE_OFFLINE . . . . .	Number	 00001000h   
+FILE_ATTRIBUTE_READONLY  . . . .	Number	 00000001h   
+FILE_ATTRIBUTE_REPARSE_POINT . .	Number	 00000400h   
+FILE_ATTRIBUTE_SPARSE_FILE . . .	Number	 00000200h   
+FILE_ATTRIBUTE_SYSTEM  . . . . .	Number	 00000004h   
+FILE_ATTRIBUTE_TEMPORARY . . . .	Number	 00000100h   
+FILE_BEGIN . . . . . . . . . . .	Number	 00000000h   
+FILE_CURRENT . . . . . . . . . .	Number	 00000001h   
+FILE_DELETE_CHILD  . . . . . . .	Number	 00000040h   
+FILE_END . . . . . . . . . . . .	Number	 00000002h   
+FILE_READ_DATA . . . . . . . . .	Number	 00000001h   
+FILE_SHARE_DELETE  . . . . . . .	Number	 00000004h   
+FILE_SHARE_READ  . . . . . . . .	Number	 00000001h   
+FILE_SHARE_WRITE . . . . . . . .	Number	 00000002h   
+FILE_WRITE_DATA  . . . . . . . .	Number	 00000002h   
+FOCUS_EVENT  . . . . . . . . . .	Number	 00000010h   
+FORMAT_MESSAGE_ALLOCATE_BUFFER .	Number	 00000100h   
+FORMAT_MESSAGE_FROM_SYSTEM . . .	Number	 00001000h   
+FormatMessage  . . . . . . . . .	Text   	 FormatMessageA
+GENERIC_ALL  . . . . . . . . . .	Number	 10000000h   
+GENERIC_EXECUTE  . . . . . . . .	Number	 20000000h   
+GENERIC_READ . . . . . . . . . .	Number	 -80000000h   
+GENERIC_WRITE  . . . . . . . . .	Number	 40000000h   
+GameBoard  . . . . . . . . . . .	Byte	 000000AE _DATA	
+GetCommandLine . . . . . . . . .	Text   	 GetCommandLineA
+HANDLE . . . . . . . . . . . . .	Text   	 DWORD
+HEAP_GENERATE_EXCEPTIONS . . . .	Number	 00000004h   
+HEAP_GROWABLE  . . . . . . . . .	Number	 00000002h   
+HEAP_NO_SERIALIZE  . . . . . . .	Number	 00000001h   
+HEAP_REALLOC_IN_PLACE_ONLY . . .	Number	 00000010h   
+HEAP_ZERO_MEMORY . . . . . . . .	Number	 00000008h   
+IDABORT  . . . . . . . . . . . .	Number	 00000003h   
+IDCANCEL . . . . . . . . . . . .	Number	 00000002h   
+IDCLOSE  . . . . . . . . . . . .	Number	 00000008h   
+IDCONTINUE . . . . . . . . . . .	Number	 0000000Bh   
+IDHELP . . . . . . . . . . . . .	Number	 00000009h   
+IDIGNORE . . . . . . . . . . . .	Number	 00000005h   
+IDNO . . . . . . . . . . . . . .	Number	 00000007h   
+IDOK . . . . . . . . . . . . . .	Number	 00000001h   
+IDRETRY  . . . . . . . . . . . .	Number	 00000004h   
+IDTIMEOUT  . . . . . . . . . . .	Number	 00007D00h   
+IDTRYAGAIN . . . . . . . . . . .	Number	 0000000Ah   
+IDYES  . . . . . . . . . . . . .	Number	 00000006h   
+INVALID_HANDLE_VALUE . . . . . .	Number	 -00000001h   
+KBDOWN_FLAG  . . . . . . . . . .	Number	 00000001h   
+KEY_EVENT  . . . . . . . . . . .	Number	 00000001h   
+KEY_MASKS  . . . . . . . . . . .	Number	 0000001Fh   
+LEFT_ALT_PRESSED . . . . . . . .	Number	 00000002h   
+LEFT_CTRL_PRESSED  . . . . . . .	Number	 00000008h   
+MB_ABORTRETRYIGNORE  . . . . . .	Number	 00000002h   
+MB_APPLMODAL . . . . . . . . . .	Number	 00000000h   
+MB_CANCELTRYCONTINUE . . . . . .	Number	 00000006h   
+MB_DEFBUTTON1  . . . . . . . . .	Number	 00000000h   
+MB_DEFBUTTON2  . . . . . . . . .	Number	 00000100h   
+MB_DEFBUTTON3  . . . . . . . . .	Number	 00000200h   
+MB_DEFBUTTON4  . . . . . . . . .	Number	 00000300h   
+MB_HELP  . . . . . . . . . . . .	Number	 00004000h   
+MB_ICONASTERISK  . . . . . . . .	Number	 00000040h   
+MB_ICONERROR . . . . . . . . . .	Number	 00000010h   
+MB_ICONEXCLAMATION . . . . . . .	Number	 00000030h   
+MB_ICONHAND  . . . . . . . . . .	Number	 00000010h   
+MB_ICONINFORMATION . . . . . . .	Number	 00000040h   
+MB_ICONQUESTION  . . . . . . . .	Number	 00000020h   
+MB_ICONSTOP  . . . . . . . . . .	Number	 00000010h   
+MB_ICONWARNING . . . . . . . . .	Number	 00000030h   
+MB_OKCANCEL  . . . . . . . . . .	Number	 00000001h   
+MB_OK  . . . . . . . . . . . . .	Number	 00000000h   
+MB_RETRYCANCEL . . . . . . . . .	Number	 00000005h   
+MB_SYSTEMMODAL . . . . . . . . .	Number	 00001000h   
+MB_TASKMODAL . . . . . . . . . .	Number	 00002000h   
+MB_USERICON  . . . . . . . . . .	Number	 00000080h   
+MB_YESNOCANCEL . . . . . . . . .	Number	 00000003h   
+MB_YESNO . . . . . . . . . . . .	Number	 00000004h   
+MENU_EVENT . . . . . . . . . . .	Number	 00000008h   
+MOUSE_EVENT  . . . . . . . . . .	Number	 00000002h   
+MessageBox . . . . . . . . . . .	Text   	 MessageBoxA
+NULL . . . . . . . . . . . . . .	Number	 00000000h   
+NUMLOCK_ON . . . . . . . . . . .	Number	 00000020h   
+Nowin  . . . . . . . . . . . . .	Byte	 0000021F _DATA	
+OPEN_ALWAYS  . . . . . . . . . .	Number	 00000004h   
+OPEN_EXISTING  . . . . . . . . .	Number	 00000003h   
+P1win  . . . . . . . . . . . . .	Byte	 00000201 _DATA	
+P2win  . . . . . . . . . . . . .	Byte	 00000210 _DATA	
+PeekConsoleInput . . . . . . . .	Text   	 PeekConsoleInputA
+RIGHT_ALT_PRESSED  . . . . . . .	Number	 00000001h   
+RIGHT_CTRL_PRESSED . . . . . . .	Number	 00000004h   
+ReadConsoleInput . . . . . . . .	Text   	 ReadConsoleInputA
+ReadConsole  . . . . . . . . . .	Text   	 ReadConsoleA
+SCROLLLOCK_ON  . . . . . . . . .	Number	 00000040h   
+SHIFT_MASK . . . . . . . . . . .	Number	 00000010h   
+SHIFT_PRESSED  . . . . . . . . .	Number	 00000010h   
+STD_ERROR_HANDLE . . . . . . . .	Number	 -0000000Ch   
+STD_INPUT_HANDLE . . . . . . . .	Number	 -0000000Ah   
+STD_OUTPUT_HANDLE  . . . . . . .	Number	 -0000000Bh   
+SetConsoleTitle  . . . . . . . .	Text   	 SetConsoleTitleA
+TAB  . . . . . . . . . . . . . .	Number	 00000009h   
+TRUE . . . . . . . . . . . . . .	Number	 00000001h   
+TRUNCATE_EXISTING  . . . . . . .	Number	 00000005h   
+UserTurn . . . . . . . . . . . .	Byte	 00000267 _DATA	
+VK_11  . . . . . . . . . . . . .	Number	 000000BDh   
+VK_12  . . . . . . . . . . . . .	Number	 000000BBh   
+VK_ADD . . . . . . . . . . . . .	Number	 0000006Bh   
+VK_BACK  . . . . . . . . . . . .	Number	 00000008h   
+VK_CANCEL  . . . . . . . . . . .	Number	 00000003h   
+VK_CAPITAL . . . . . . . . . . .	Number	 00000014h   
+VK_CLEAR . . . . . . . . . . . .	Number	 0000000Ch   
+VK_CONTROL . . . . . . . . . . .	Number	 00000011h   
+VK_DECIMAL . . . . . . . . . . .	Number	 0000006Eh   
+VK_DELETE  . . . . . . . . . . .	Number	 0000002Eh   
+VK_DIVIDE  . . . . . . . . . . .	Number	 0000006Fh   
+VK_DOWN  . . . . . . . . . . . .	Number	 00000028h   
+VK_END . . . . . . . . . . . . .	Number	 00000023h   
+VK_ESCAPE  . . . . . . . . . . .	Number	 0000001Bh   
+VK_EXECUTE . . . . . . . . . . .	Number	 0000002Bh   
+VK_F10 . . . . . . . . . . . . .	Number	 00000079h   
+VK_F11 . . . . . . . . . . . . .	Number	 0000007Ah   
+VK_F12 . . . . . . . . . . . . .	Number	 0000007Bh   
+VK_F13 . . . . . . . . . . . . .	Number	 0000007Ch   
+VK_F14 . . . . . . . . . . . . .	Number	 0000007Dh   
+VK_F15 . . . . . . . . . . . . .	Number	 0000007Eh   
+VK_F16 . . . . . . . . . . . . .	Number	 0000007Fh   
+VK_F17 . . . . . . . . . . . . .	Number	 00000080h   
+VK_F18 . . . . . . . . . . . . .	Number	 00000081h   
+VK_F19 . . . . . . . . . . . . .	Number	 00000082h   
+VK_F1  . . . . . . . . . . . . .	Number	 00000070h   
+VK_F20 . . . . . . . . . . . . .	Number	 00000083h   
+VK_F21 . . . . . . . . . . . . .	Number	 00000084h   
+VK_F22 . . . . . . . . . . . . .	Number	 00000085h   
+VK_F23 . . . . . . . . . . . . .	Number	 00000086h   
+VK_F24 . . . . . . . . . . . . .	Number	 00000087h   
+VK_F2  . . . . . . . . . . . . .	Number	 00000071h   
+VK_F3  . . . . . . . . . . . . .	Number	 00000072h   
+VK_F4  . . . . . . . . . . . . .	Number	 00000073h   
+VK_F5  . . . . . . . . . . . . .	Number	 00000074h   
+VK_F6  . . . . . . . . . . . . .	Number	 00000075h   
+VK_F7  . . . . . . . . . . . . .	Number	 00000076h   
+VK_F8  . . . . . . . . . . . . .	Number	 00000077h   
+VK_F9  . . . . . . . . . . . . .	Number	 00000078h   
+VK_HELP  . . . . . . . . . . . .	Number	 0000002Fh   
+VK_HOME  . . . . . . . . . . . .	Number	 00000024h   
+VK_INSERT  . . . . . . . . . . .	Number	 0000002Dh   
+VK_LBUTTON . . . . . . . . . . .	Number	 00000001h   
+VK_LCONTROL  . . . . . . . . . .	Number	 000000A2h   
+VK_LEFT  . . . . . . . . . . . .	Number	 00000025h   
+VK_LMENU . . . . . . . . . . . .	Number	 000000A4h   
+VK_LSHIFT  . . . . . . . . . . .	Number	 000000A0h   
+VK_MENU  . . . . . . . . . . . .	Number	 00000012h   
+VK_MULTIPLY  . . . . . . . . . .	Number	 0000006Ah   
+VK_NEXT  . . . . . . . . . . . .	Number	 00000022h   
+VK_NUMLOCK . . . . . . . . . . .	Number	 00000090h   
+VK_NUMPAD0 . . . . . . . . . . .	Number	 00000060h   
+VK_NUMPAD1 . . . . . . . . . . .	Number	 00000061h   
+VK_NUMPAD2 . . . . . . . . . . .	Number	 00000062h   
+VK_NUMPAD3 . . . . . . . . . . .	Number	 00000063h   
+VK_NUMPAD4 . . . . . . . . . . .	Number	 00000064h   
+VK_NUMPAD5 . . . . . . . . . . .	Number	 00000065h   
+VK_NUMPAD6 . . . . . . . . . . .	Number	 00000066h   
+VK_NUMPAD7 . . . . . . . . . . .	Number	 00000067h   
+VK_NUMPAD8 . . . . . . . . . . .	Number	 00000068h   
+VK_NUMPAD9 . . . . . . . . . . .	Number	 00000069h   
+VK_PAUSE . . . . . . . . . . . .	Number	 00000013h   
+VK_PRINT . . . . . . . . . . . .	Number	 0000002Ah   
+VK_PRIOR . . . . . . . . . . . .	Number	 00000021h   
+VK_RBUTTON . . . . . . . . . . .	Number	 00000002h   
+VK_RCONTROL  . . . . . . . . . .	Number	 000000A3h   
+VK_RETURN  . . . . . . . . . . .	Number	 0000000Dh   
+VK_RIGHT . . . . . . . . . . . .	Number	 00000027h   
+VK_RMENU . . . . . . . . . . . .	Number	 000000A5h   
+VK_RSHIFT  . . . . . . . . . . .	Number	 000000A1h   
+VK_SCROLL  . . . . . . . . . . .	Number	 00000091h   
+VK_SEPARATER . . . . . . . . . .	Number	 0000006Ch   
+VK_SHIFT . . . . . . . . . . . .	Number	 00000010h   
+VK_SNAPSHOT  . . . . . . . . . .	Number	 0000002Ch   
+VK_SPACE . . . . . . . . . . . .	Number	 00000020h   
+VK_SUBTRACT  . . . . . . . . . .	Number	 0000006Dh   
+VK_TAB . . . . . . . . . . . . .	Number	 00000009h   
+VK_UP  . . . . . . . . . . . . .	Number	 00000026h   
+WINDOW_BUFFER_SIZE_EVENT . . . .	Number	 00000004h   
+WriteConsoleOutputCharacter  . .	Text   	 WriteConsoleOutputCharacterA
+WriteConsole . . . . . . . . . .	Text   	 WriteConsoleA
+black  . . . . . . . . . . . . .	Number	 00000000h   
+blue . . . . . . . . . . . . . .	Number	 00000001h   
+boardSlength . . . . . . . . . .	DWord	 0000017F _DATA	
+brown  . . . . . . . . . . . . .	Number	 00000006h   
+comp1Turn  . . . . . . . . . . .	Byte	 0000023F _DATA	
+comp2Turn  . . . . . . . . . . .	Byte	 00000253 _DATA	
+compTurn . . . . . . . . . . . .	Byte	 0000022D _DATA	
+cyan . . . . . . . . . . . . . .	Number	 00000003h   
+entrypromt . . . . . . . . . . .	Byte	 00000183 _DATA	
+errorpromt . . . . . . . . . . .	Byte	 00000197 _DATA	
+exit . . . . . . . . . . . . . .	Text   	 INVOKE ExitProcess,0
+gamePlayHeader . . . . . . . . .	Byte	 000002D3 _DATA	
+gameoverMenu . . . . . . . . . .	Byte	 00000275 _DATA	
+gray . . . . . . . . . . . . . .	Number	 00000008h   
+green  . . . . . . . . . . . . .	Number	 00000002h   
+indexArray . . . . . . . . . . .	Byte	 00000176 _DATA	
+initialpromt . . . . . . . . . .	Byte	 00000000 _DATA	
+lightBlue  . . . . . . . . . . .	Number	 00000009h   
+lightCyan  . . . . . . . . . . .	Number	 0000000Bh   
+lightGray  . . . . . . . . . . .	Number	 00000007h   
+lightGreen . . . . . . . . . . .	Number	 0000000Ah   
+lightMagenta . . . . . . . . . .	Number	 0000000Dh   
+lightRed . . . . . . . . . . . .	Number	 0000000Ch   
+magenta  . . . . . . . . . . . .	Number	 00000005h   
+menu . . . . . . . . . . . . . .	Byte	 000001C1 _DATA	
+player1Header  . . . . . . . . .	Byte	 000002E7 _DATA	
+player1win . . . . . . . . . . .	DWord	 00000331 _DATA	
+player2Header  . . . . . . . . .	Byte	 000002FE _DATA	
+player2win . . . . . . . . . . .	DWord	 00000335 _DATA	
+red  . . . . . . . . . . . . . .	Number	 00000004h   
+rowsize  . . . . . . . . . . . .	Number	 00000003h   
+tiedGameHead . . . . . . . . . .	Byte	 00000315 _DATA	
+tiegame  . . . . . . . . . . . .	DWord	 00000339 _DATA	
+white  . . . . . . . . . . . . .	Number	 0000000Fh   
+wsprintf . . . . . . . . . . . .	Text   	 wsprintfA
+yellow . . . . . . . . . . . . .	Number	 0000000Eh   
+
+	   0 Warnings
+	   0 Errors
