@@ -1,5 +1,5 @@
 # tic-tac-toe
-simple masm tic tac toe game using masm
+simple masm tic tac toe game using masm for x86 processor
 1.  You must use a two-dimensional arrayand Base-Index operands (Row-major order) 
 throughout the game.  The game board is created with characters.
               -| -| -
