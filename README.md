@@ -2,6 +2,7 @@
 simple masm tic tac toe game using masm for x86 processor
 1.  You must use a two-dimensional arrayand Base-Index operands (Row-major order) 
 throughout the game.  The game board is created with characters.
+
               -| -| -
               -| -| - This is an example of the empty board.
               -| -| -
@@ -9,6 +10,7 @@ throughout the game.  The game board is created with characters.
               -| x | -
               -| o | - This is an example of a game in progress.
               -| - | -
+              
 2.  All Procedures will be called with PROTO/INVOKE/PROC.  I will be checking for this.  DO NOT 
 USE USES as discussed in class.The only exception is the Irvine32 library.  These must be called
 with CALL.
